@@ -1,0 +1,14 @@
+{
+  "name": "ravel",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Close any tab without losing your place. Ravel groups tabs into threads and keeps the ones you close searchable, all on your device.",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.2.7",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
+  }
+}

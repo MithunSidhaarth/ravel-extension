@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy Policy: RAVEL</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="../icons/icon32.png" />
+    <link rel="stylesheet" href="../design/base.css" />
+    <link rel="stylesheet" href="./options.css" />
+  </head>
+  <body>
+    <div class="ravel-noise"></div>
+    <div class="options-page">
+      <header class="options-header">
+        <div class="wordmark">RAVEL</div>
+        <div class="ravel-eyebrow">PRIVACY POLICY</div>
+      </header>
+
+      <section class="options-section">
+        <h2 class="options-section-title">The short version</h2>
+        <p class="options-section-desc">
+          Ravel does not send your browsing activity anywhere. There is no account, no server, and no third party
+          involved at any point. Everything described below happens only inside your own browser, on your own
+          device.
+        </p>
+      </section>
+
+      <section class="options-section">
+        <h2 class="options-section-title">What Ravel stores</h2>
+        <p class="options-section-desc">
+          While you browse, Ravel keeps a local record of page titles, URLs, and timestamps for the tabs it's
+          allowed to see, so it can group them into threads and let you search for them later. This is written to
+          this browser's local IndexedDB only. It is never uploaded, synced, or transmitted over the network.
+        </p>
+      </section>
+
+      <section class="options-section">
+        <h2 class="options-section-title">Why Ravel asks for its permissions</h2>
+        <p class="options-section-desc">
+          "tabs" lets Ravel see the titles and URLs of your open tabs, which is how it builds threads. "alarms"
+          schedules the local cleanup that prunes old activity past your retention setting. The content script that
+          runs on http/https pages reads signals already visible on the page (its title, a bit of structure) to
+          help identify what it is. None of it leaves the browser.
+        </p>
+      </section>
+
+      <section class="options-section">
+        <h2 class="options-section-title">How long it's kept</h2>
+        <p class="options-section-desc">
+          You choose the retention window in Settings, from 30 days up to forever. "Delete everything" in Settings
+          wipes all local data immediately, and uninstalling the extension removes it too.
+        </p>
+      </section>
+
+      <section class="options-section">
+        <h2 class="options-section-title">Changes</h2>
+        <p class="options-section-desc">
+          If this policy changes, the updated version replaces this page. There's nothing to opt into or out of
+          beyond what's already in Settings.
+        </p>
+      </section>
+
+      <nav class="legal-footer">
+        <a href="./about.html">About</a>
+        <a href="./cookies.html">Cookie Policy</a>
+        <a href="./options.html">Settings</a>
+      </nav>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,1500 @@
+html, body { height: 100%; }
+
+.dash {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--ravel-bg-0);
+}
+
+/* ---------- top bar: nav reads as typography, not a button rail.
+   larger, spaced-out serif words with an underline that fills in on
+   active/hover, the way a caption line resolves under a plate. ---------- */
+
+.dash-topbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--ravel-space-6);
+  padding: var(--ravel-space-4) var(--ravel-space-6);
+  border-bottom: 1px solid var(--ravel-border);
+  background: rgba(5, 8, 14, 0.6);
+  backdrop-filter: blur(var(--ravel-blur-glass));
+  position: relative;
+  z-index: 20;
+}
+
+.topbar-nav {
+  flex: 1;
+  display: flex;
+  gap: var(--ravel-space-6);
+}
+
+.topbar-tab {
+  position: relative;
+  padding: var(--ravel-space-2) 0;
+  font-family: var(--ravel-font-display);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ravel-text-3);
+  transition: color var(--ravel-duration-med) var(--ravel-ease), letter-spacing var(--ravel-duration-med) var(--ravel-ease);
+}
+
+.topbar-tab::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: var(--ravel-accent);
+  box-shadow: 0 0 8px var(--ravel-accent-glow);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--ravel-duration-med) var(--ravel-ease);
+}
+
+.topbar-tab:hover {
+  color: var(--ravel-text-1);
+  letter-spacing: 0.01em;
+}
+
+.topbar-tab.active {
+  color: var(--ravel-text-0);
+}
+
+.topbar-tab.active::after {
+  transform: scaleX(1);
+}
+
+.topbar-settings {
+  flex: none;
+  font-family: var(--ravel-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ravel-text-3);
+}
+
+.topbar-settings:hover { color: var(--ravel-text-1); }
+
+/* ---------- main column ---------- */
+
+.dash-main {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.dash-main > .dash-header,
+.dash-main > #dash-root {
+  position: relative;
+  z-index: 1;
+}
+
+/* deliberately asymmetric: the eyebrow/title block sits left-weighted
+   and slightly indented past the tab rail above it, the stat strip
+   hangs off the right edge - nothing here is centered or mirrored */
+.dash-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--ravel-space-6);
+  padding: var(--ravel-space-6) var(--ravel-space-6) var(--ravel-space-5) calc(var(--ravel-space-6) + 6px);
+  border-bottom: 1px solid var(--ravel-border);
+  position: sticky;
+  top: 0;
+  background: rgba(5, 8, 14, 0.82);
+  backdrop-filter: blur(var(--ravel-blur-glass));
+  z-index: 10;
+}
+
+.dash-eyebrow {
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  letter-spacing: var(--ravel-tracking-eyebrow);
+  color: var(--ravel-text-3);
+  margin-bottom: 6px;
+}
+
+.dash-title {
+  font-family: var(--ravel-font-display);
+  font-size: 30px;
+  font-weight: 500;
+  font-style: normal;
+  letter-spacing: -0.01em;
+  color: var(--ravel-text-0);
+}
+
+/* ---------- stat strip ---------- */
+
+.stat-strip {
+  display: flex;
+  flex: none;
+  transform: translateY(3px); /* the asymmetric counterweight to the title's italic lean */
+}
+
+.stat-card {
+  min-width: 104px;
+  padding: 0 var(--ravel-space-4);
+  border-left: 1px solid var(--ravel-border);
+}
+
+.stat-card:first-child { border-left: none; padding-left: 0; }
+
+.stat-value {
+  font-family: var(--ravel-font-mono);
+  font-weight: 500;
+  font-size: 19px;
+  color: var(--ravel-accent);
+  line-height: 1.1;
+}
+
+.stat-label {
+  margin-top: 3px;
+  font-family: var(--ravel-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ravel-text-3);
+}
+
+/* ---------- mobile: the topbar's 5 labels + Settings don't fit a phone
+   width at their desktop gap, so it scrolls horizontally instead of
+   wrapping (wrapping would break the single-row active-tab underline
+   logic); the header's eyebrow/title/stats stack instead of spreading
+   edge-to-edge. ---------- */
+@media (max-width: 640px) {
+  .dash-topbar {
+    gap: var(--ravel-space-4);
+    padding: var(--ravel-space-3) var(--ravel-space-4);
+  }
+
+  .topbar-nav {
+    gap: var(--ravel-space-4);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .topbar-nav::-webkit-scrollbar { display: none; }
+
+  .topbar-tab { font-size: 13px; white-space: nowrap; }
+
+  .dash-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--ravel-space-4);
+    padding: var(--ravel-space-4);
+  }
+
+  .dash-title { font-size: 24px; }
+
+  .stat-strip {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--ravel-space-3);
+    transform: none;
+    width: 100%;
+  }
+
+  .stat-card { border-left: none; padding-left: 0; }
+
+  .dash-body { padding: var(--ravel-space-4); }
+}
+
+.dash-body {
+  flex: 1;
+  padding: var(--ravel-space-6) var(--ravel-space-6) var(--ravel-space-6) calc(var(--ravel-space-6) + 6px);
+  max-width: 1160px;
+  margin: 0 auto;
+  width: 100%;
+  /* a frosted panel over the photo, not a flat color - keeps the
+     background legible as a *place* in the gaps/margins around content
+     while guaranteeing text contrast regardless of scroll position
+     (the photo itself is position:fixed, so a pure vignette darkens the
+     viewport, not the page - this travels with the content instead). */
+  background: rgba(5, 8, 14, 0.44);
+  backdrop-filter: blur(6px) saturate(1.1);
+  -webkit-backdrop-filter: blur(6px) saturate(1.1);
+  border-radius: var(--ravel-radius-lg);
+}
+
+.preview-badge {
+  display: inline-block;
+  font-family: var(--ravel-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--ravel-text-2);
+  border-top: 1px solid var(--ravel-border-strong);
+  border-bottom: 1px solid var(--ravel-border-strong);
+  padding: 4px 2px;
+  margin-bottom: var(--ravel-space-4);
+}
+
+
+/* ================= HOME - the front door: what Ravel is, how it
+   works, and a way into every other tab. Static content only. ================= */
+
+.home-page {
+  max-width: 980px;
+}
+
+.home-hero {
+  max-width: 640px;
+  padding-bottom: var(--ravel-space-6);
+  border-bottom: 1px solid var(--ravel-border);
+}
+
+.home-hero-label {
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  letter-spacing: var(--ravel-tracking-eyebrow);
+  color: var(--ravel-accent);
+  margin-bottom: var(--ravel-space-3);
+}
+
+.home-hero-title {
+  font-family: var(--ravel-font-display);
+  font-weight: 500;
+  font-style: normal;
+  font-size: clamp(28px, 4vw, 40px);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--ravel-text-0);
+}
+
+.home-hero-lede {
+  margin-top: var(--ravel-space-4);
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--ravel-text-1);
+}
+
+.home-greeting {
+  margin-bottom: var(--ravel-space-4);
+  font-family: var(--ravel-font-display);
+  font-weight: 500;
+  font-style: normal;
+  font-size: 20px;
+  color: var(--ravel-accent);
+}
+
+/* ---- first-run name prompt: inline, skippable, no modal ---- */
+
+.home-name-prompt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ravel-space-3);
+  margin-bottom: var(--ravel-space-5);
+  padding: var(--ravel-space-3) var(--ravel-space-4);
+  border: 1px solid var(--ravel-border);
+  border-radius: var(--ravel-radius-md);
+  background: var(--ravel-bg-1);
+}
+
+.home-name-prompt-label {
+  font-family: var(--ravel-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ravel-text-2);
+}
+
+.home-name-prompt-input {
+  flex: 1;
+  min-width: 140px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--ravel-border-strong);
+  outline: none;
+  padding: 4px 0;
+  color: var(--ravel-text-0);
+  font-family: var(--ravel-font-body);
+  font-size: 13px;
+}
+
+.home-name-prompt-input:focus {
+  border-color: var(--ravel-accent);
+}
+
+.home-name-prompt-btn {
+  flex: none;
+  padding: 7px 14px;
+  border-radius: var(--ravel-radius-sm);
+  border: 1px solid var(--ravel-accent-dim);
+  color: var(--ravel-accent);
+  font-family: var(--ravel-font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  transition: background var(--ravel-duration-fast) var(--ravel-ease), color var(--ravel-duration-fast) var(--ravel-ease);
+}
+
+.home-name-prompt-btn:hover {
+  background: var(--ravel-accent);
+  color: var(--ravel-bg-0);
+}
+
+/* ---- how it works: three steps, the mechanic in one glance ---- */
+
+.home-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--ravel-space-6);
+  padding: var(--ravel-space-6) 0;
+  border-bottom: 1px solid var(--ravel-border);
+}
+
+.home-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ravel-space-2);
+}
+
+.home-step-num {
+  font-family: var(--ravel-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--ravel-text-3);
+}
+
+.home-step-label {
+  font-family: var(--ravel-font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: var(--ravel-accent);
+}
+
+.home-step-body {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ravel-text-2);
+}
+
+/* ---- go there: every other tab, as an invitation, not a menu ---- */
+
+.home-nav {
+  padding-top: var(--ravel-space-6);
+}
+
+.home-nav-label {
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  letter-spacing: var(--ravel-tracking-eyebrow);
+  color: var(--ravel-text-3);
+  margin-bottom: var(--ravel-space-4);
+}
+
+.home-nav-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--ravel-space-3);
+}
+
+.home-nav-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  width: 100%;
+  padding: var(--ravel-space-5);
+  border: 1px solid var(--ravel-border);
+  border-radius: var(--ravel-radius-md);
+  background: var(--ravel-bg-1);
+  transition: border-color var(--ravel-duration-fast) var(--ravel-ease),
+    background var(--ravel-duration-fast) var(--ravel-ease),
+    transform var(--ravel-duration-fast) var(--ravel-ease),
+    box-shadow var(--ravel-duration-fast) var(--ravel-ease);
+}
+
+.home-nav-card:hover,
+.home-nav-card:focus-visible {
+  border-color: var(--ravel-accent-dim);
+  background: var(--ravel-bg-2);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px -18px rgba(156, 196, 255, 0.35);
+}
+
+.home-nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: var(--ravel-space-4);
+  border: 1px solid var(--ravel-border-strong);
+  border-radius: var(--ravel-radius-sm);
+  color: var(--ravel-text-1);
+  transition: color var(--ravel-duration-fast) var(--ravel-ease), border-color var(--ravel-duration-fast) var(--ravel-ease);
+}
+
+.home-nav-card:hover .home-nav-icon {
+  color: var(--ravel-accent);
+  border-color: var(--ravel-accent-dim);
+}
+
+.home-nav-tag {
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--ravel-text-3);
+}
+
+.home-nav-title {
+  margin-top: var(--ravel-space-2);
+  font-family: var(--ravel-font-display);
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--ravel-text-0);
+}
+
+.home-nav-body {
+  margin-top: var(--ravel-space-2);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ravel-text-2);
+}
+
+.home-nav-open {
+  width: 100%;
+  margin-top: var(--ravel-space-4);
+  padding-top: var(--ravel-space-3);
+  border-top: 1px solid var(--ravel-border);
+  font-family: var(--ravel-font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  color: var(--ravel-accent-dim);
+  transition: color var(--ravel-duration-fast) var(--ravel-ease);
+}
+
+.home-nav-card:hover .home-nav-open { color: var(--ravel-accent); }
+
+@media (max-width: 860px) {
+  .home-steps,
+  .home-nav-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .home-steps,
+  .home-nav-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- panels: rabbit holes ---- */
+
+.panel-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ravel-space-3);
+}
+
+.panel-empty {
+  font-size: 12px;
+  color: var(--ravel-text-3);
+  border: 1px dashed var(--ravel-border);
+  border-radius: var(--ravel-radius-md);
+  padding: var(--ravel-space-5);
+  line-height: 1.5;
+}
+
+/* rabbit holes - a physical path, not a card. no border, no radius,
+   no fill: a hairline divider between rows is the only container. */
+
+.hole-row {
+  padding: var(--ravel-space-4) 0;
+  border-bottom: 1px solid var(--ravel-border);
+}
+
+.panel-list .hole-row:last-child { border-bottom: none; }
+
+.hole-head {
+  display: block;
+  width: 100%;
+  text-align: left;
+}
+
+.hole-title {
+  font-family: var(--ravel-font-display);
+  font-weight: 600;
+  font-size: 20px;
+  color: var(--ravel-text-0);
+  margin-bottom: 2px;
+  transition: color var(--ravel-duration-fast) var(--ravel-ease);
+}
+
+.hole-row:hover .hole-title { color: var(--ravel-accent); }
+
+.hole-meta {
+  font-family: var(--ravel-font-mono);
+  font-size: 11px;
+  color: var(--ravel-text-2);
+}
+
+/* the trail: ● ─── ● ─── ● - always visible, this IS the content,
+   not something hidden behind a click. */
+
+.hole-trail {
+  display: flex;
+  align-items: center;
+  margin-top: var(--ravel-space-3);
+  height: 14px;
+}
+
+.hole-node {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  cursor: default;
+}
+
+.hole-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ravel-text-2);
+  transition: background var(--ravel-duration-fast) var(--ravel-ease),
+    box-shadow var(--ravel-duration-fast) var(--ravel-ease);
+}
+
+.hole-node:first-child .hole-dot,
+.hole-node:last-child .hole-dot {
+  background: var(--ravel-accent);
+  box-shadow: 0 0 6px var(--ravel-accent-glow);
+}
+
+.hole-node:hover .hole-dot {
+  background: var(--ravel-accent);
+  box-shadow: 0 0 8px var(--ravel-accent-glow);
+  transform: scale(1.4);
+}
+
+.hole-line {
+  flex: 1;
+  height: 1px;
+  min-width: 10px;
+  background: var(--ravel-border-strong);
+}
+
+/* "the long rabbit hole" - duration made spatial. --ravel-stretch (0..1,
+   set inline from the real duration) widens every gap and brightens the
+   path, so a session that ran long visibly takes up more room, before
+   you've read a single number. */
+.hole-trail-long .hole-line {
+  min-width: calc(10px + var(--ravel-stretch, 0) * 70px);
+  height: calc(1px + var(--ravel-stretch, 0) * 0.6px);
+  background: linear-gradient(
+    to right,
+    var(--ravel-border-strong),
+    rgba(156, 196, 255, calc(0.12 + var(--ravel-stretch, 0) * 0.3)),
+    var(--ravel-border-strong)
+  );
+}
+
+.hole-long-caption {
+  margin-top: var(--ravel-space-2);
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  font-style: normal;
+  letter-spacing: 0.02em;
+  color: var(--ravel-text-3);
+  opacity: 0;
+  animation: ravel-rise var(--ravel-duration-slow) var(--ravel-ease) 900ms both;
+}
+
+/* "the dead end" - a trail is a completed session, not a cut-off list.
+   quiet, easy to miss on purpose: it's a closing note, not a warning. */
+.hole-end-marker {
+  margin-top: var(--ravel-space-2);
+  font-family: var(--ravel-font-body);
+  font-size: 10.5px;
+  font-style: normal;
+  color: var(--ravel-text-3);
+  opacity: 0;
+  transition: opacity var(--ravel-duration-med) var(--ravel-ease);
+}
+
+.hole-row:hover .hole-end-marker {
+  opacity: 0.7;
+}
+
+/* expanded detail - named stops, revealed on click. still no card: just
+   type, indented under the trail it belongs to. */
+
+.hole-detail {
+  display: none;
+  flex-direction: column;
+  gap: var(--ravel-space-2);
+  margin-top: var(--ravel-space-3);
+  padding-top: var(--ravel-space-3);
+  border-top: 1px solid var(--ravel-border);
+}
+
+.hole-row[aria-expanded="true"] .hole-detail { display: flex; }
+
+.hole-step {
+  font-size: 12px;
+  color: var(--ravel-text-1);
+}
+
+.hole-step-domain {
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  color: var(--ravel-text-3);
+  display: block;
+  margin-top: 1px;
+}
+
+.dash-ravel-all-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--ravel-space-4);
+}
+
+.dash-ravel-all-btn {
+  padding: 9px 16px;
+  border-radius: var(--ravel-radius-sm);
+  font-family: var(--ravel-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  border: 1px solid var(--ravel-ember);
+  color: var(--ravel-ember);
+  background: var(--ravel-ember-faint);
+  transition: background var(--ravel-duration-fast) var(--ravel-ease), color var(--ravel-duration-fast) var(--ravel-ease);
+}
+
+.dash-ravel-all-btn:hover {
+  background: var(--ravel-ember);
+  color: var(--ravel-bg-0);
+}
+
+/* ---- open threads (dashboard scale): the same rescue mechanic as the
+   popup, full-size. stale threads carry the rust/ember signal, same
+   language as everywhere else something is asking for a decision. ---- */
+
+.dash-thread-row {
+  padding: var(--ravel-space-4) 0;
+  border-bottom: 1px solid var(--ravel-border);
+}
+
+.panel-list .dash-thread-row:last-child { border-bottom: none; }
+
+.dash-thread-main {
+  display: flex;
+  align-items: center;
+  gap: var(--ravel-space-4);
+}
+
+.dash-thread-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ravel-accent);
+}
+
+.dash-thread-row.is-stale .dash-thread-dot {
+  background: var(--ravel-ember);
+  box-shadow: 0 0 8px var(--ravel-ember-faint);
+}
+
+.dash-thread-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.dash-thread-label {
+  font-family: var(--ravel-font-display);
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--ravel-text-0);
+}
+
+.dash-thread-meta {
+  margin-top: 2px;
+  font-family: var(--ravel-font-mono);
+  font-size: 11px;
+  color: var(--ravel-text-2);
+}
+
+.dash-thread-row.is-stale .dash-thread-meta {
+  color: var(--ravel-ember);
+}
+
+.dash-thread-btn {
+  flex: none;
+  padding: 9px 16px;
+  border-radius: var(--ravel-radius-sm);
+  font-family: var(--ravel-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  border: 1px solid var(--ravel-border-strong);
+  color: var(--ravel-text-1);
+  transition: border-color var(--ravel-duration-fast) var(--ravel-ease), color var(--ravel-duration-fast) var(--ravel-ease),
+    background var(--ravel-duration-fast) var(--ravel-ease);
+}
+
+.dash-thread-btn:hover {
+  border-color: var(--ravel-text-1);
+  color: var(--ravel-text-0);
+}
+
+.dash-thread-row.is-stale .dash-thread-btn {
+  border-color: var(--ravel-ember);
+  color: var(--ravel-ember);
+  background: var(--ravel-ember-faint);
+}
+
+.dash-thread-row.is-stale .dash-thread-btn:hover {
+  background: var(--ravel-ember);
+  color: var(--ravel-bg-0);
+}
+
+.dash-thread-confirm {
+  margin-top: var(--ravel-space-3);
+  padding: var(--ravel-space-4);
+  border: 1px solid var(--ravel-border-strong);
+  border-radius: var(--ravel-radius-sm);
+  background: var(--ravel-bg-1);
+  animation: ravel-rise var(--ravel-duration-fast) var(--ravel-ease) both;
+}
+
+.dash-thread-confirm-digest {
+  font-size: 13px;
+  color: var(--ravel-text-1);
+  line-height: 1.6;
+  max-width: 640px;
+}
+
+.dash-thread-confirm-tabs {
+  margin-top: var(--ravel-space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.dash-thread-confirm-tab {
+  font-family: var(--ravel-font-mono);
+  font-size: 11px;
+  color: var(--ravel-text-3);
+}
+
+.dash-thread-confirm-actions {
+  display: flex;
+  gap: var(--ravel-space-3);
+  margin-top: var(--ravel-space-4);
+}
+
+.dash-thread-confirm-btn {
+  flex: none;
+  padding: 9px 16px;
+  border-radius: var(--ravel-radius-sm);
+  font-family: var(--ravel-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+
+.dash-thread-confirm-btn.primary {
+  border: 1px solid var(--ravel-ember);
+  color: var(--ravel-bg-0);
+  background: var(--ravel-ember);
+}
+
+.dash-thread-confirm-btn.ghost {
+  border: 1px solid var(--ravel-border-strong);
+  color: var(--ravel-text-2);
+}
+
+.dash-thread-confirm-btn.ghost:hover {
+  color: var(--ravel-text-0);
+  border-color: var(--ravel-text-1);
+}
+
+/* ---- spools: what stayed after a thread was ravelled. calm and settled
+   on purpose - unlike a ghost (surfacing from the dark) or a rabbit hole
+   (a path still worth tracing), a spool is finished business: closed,
+   kept, done. Flat cards, no urgency color. ---- */
+
+.panel-intro {
+  max-width: 640px;
+  margin-bottom: var(--ravel-space-5);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ravel-text-2);
+}
+
+.spool-entry {
+  padding: var(--ravel-space-4) 0;
+  border-bottom: 1px solid var(--ravel-border);
+  opacity: 0;
+  transform: translateY(8px);
+  animation: ravel-rise var(--ravel-duration-med) var(--ravel-ease) both;
+  transition: opacity var(--ravel-duration-med) var(--ravel-ease);
+}
+
+.panel-list .spool-entry:last-child { border-bottom: none; }
+
+.spool-entry.is-removing { opacity: 0.35; pointer-events: none; }
+
+.spool-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--ravel-space-3);
+}
+
+.spool-title {
+  font-family: var(--ravel-font-display);
+  font-weight: 600;
+  font-size: 19px;
+  color: var(--ravel-text-0);
+}
+
+.spool-closed-at {
+  flex: none;
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  color: var(--ravel-text-3);
+}
+
+.spool-digest {
+  margin-top: var(--ravel-space-2);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ravel-text-1);
+  max-width: 640px;
+}
+
+.spool-tabs {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--ravel-space-3);
+  border-top: 1px solid var(--ravel-border);
+}
+
+.spool-tab-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--ravel-space-3);
+  padding: var(--ravel-space-2) 0;
+  border-bottom: 1px solid var(--ravel-border);
+  color: inherit;
+  transition: color var(--ravel-duration-fast) var(--ravel-ease);
+}
+
+.spool-tabs .spool-tab-row:last-child { border-bottom: none; }
+
+.spool-tab-row:hover { color: var(--ravel-accent); }
+
+.spool-tab-title {
+  font-size: 12.5px;
+  color: var(--ravel-text-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spool-tab-row:hover .spool-tab-title { color: var(--ravel-accent); }
+
+.spool-tab-domain {
+  flex: none;
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  color: var(--ravel-text-3);
+}
+
+.spool-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--ravel-space-4);
+  margin-top: var(--ravel-space-3);
+}
+
+.spool-reopen-btn {
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ravel-accent);
+  padding: 4px 0;
+  transition: color var(--ravel-duration-fast) var(--ravel-ease), opacity var(--ravel-duration-fast) var(--ravel-ease);
+}
+
+.spool-reopen-btn:hover { color: var(--ravel-text-0); }
+.spool-reopen-btn:disabled { opacity: 0.5; }
+
+.spool-delete-btn {
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ravel-text-3);
+  padding: 4px 0;
+  transition: color var(--ravel-duration-fast) var(--ravel-ease);
+}
+
+.spool-delete-btn:hover { color: var(--ravel-ember); }
+
+/* ---- weekly digest: a small retrospective, not a tracker. two plain
+   numbers, closure-framed - how much you didn't have to keep open. ---- */
+
+.spool-week-digest {
+  display: flex;
+  gap: var(--ravel-space-6);
+  margin-bottom: var(--ravel-space-5);
+  padding-bottom: var(--ravel-space-4);
+  border-bottom: 1px solid var(--ravel-border);
+}
+
+.spool-week-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.spool-week-stat b {
+  font-family: var(--ravel-font-display);
+  font-weight: 600;
+  font-size: 28px;
+  color: var(--ravel-text-0);
+}
+
+.spool-week-stat span {
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--ravel-text-2);
+}
+
+/* ================= SEARCH - "what are you trying to remember?" ================= */
+
+.search-page {
+  max-width: 720px;
+}
+
+.search-page-hero {
+  margin-bottom: var(--ravel-space-6);
+}
+
+.search-page-label {
+  font-family: var(--ravel-font-mono);
+  font-size: 11px;
+  letter-spacing: var(--ravel-tracking-eyebrow);
+  color: var(--ravel-text-2);
+  margin-bottom: var(--ravel-space-3);
+}
+
+.search-page-box {
+  display: flex;
+  align-items: center;
+  gap: var(--ravel-space-3);
+  padding: var(--ravel-space-3) 0 16px;
+  border-bottom: 1px solid var(--ravel-border-strong);
+  transition: border-color var(--ravel-duration-fast) var(--ravel-ease);
+}
+
+.search-page-box:focus-within {
+  border-color: var(--ravel-accent);
+}
+
+.search-page-icon {
+  flex: none;
+  display: flex;
+  align-items: center;
+  color: var(--ravel-text-2);
+  transition: color var(--ravel-duration-fast) var(--ravel-ease);
+}
+
+.search-page-box:focus-within .search-page-icon {
+  color: var(--ravel-accent);
+}
+
+.search-page-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--ravel-text-0);
+  font-family: var(--ravel-font-display);
+  font-weight: 500;
+  font-style: normal;
+  font-size: 22px;
+}
+
+.search-page-input::placeholder {
+  color: var(--ravel-text-3);
+  font-style: normal;
+  transition: opacity var(--ravel-duration-med) var(--ravel-ease);
+}
+
+/* the placeholder is not static copy - dashboard.ts cycles it through
+   "I remember something about…" / "It was around…" / "It looked like…"
+   with a soft cross-dissolve, so the empty input still feels like it's
+   trying to remember rather than waiting idle */
+.search-page-input.is-cycling::placeholder {
+  opacity: 0.55;
+}
+
+.search-status {
+  font-size: 12px;
+  color: var(--ravel-text-2);
+  line-height: 1.6;
+  padding: var(--ravel-space-2) 0;
+}
+
+/* searching reads as scanning the dark, not a spinner */
+.search-status.is-searching {
+  font-family: var(--ravel-font-mono);
+  letter-spacing: 0.04em;
+}
+
+.search-status.is-searching::after {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  overflow: hidden;
+  vertical-align: bottom;
+  animation: ravel-ellipsis 1.2s steps(4, end) infinite;
+}
+
+@keyframes ravel-ellipsis {
+  0% { content: ""; width: 0; }
+  100% { width: 12px; }
+}
+
+.search-suggestions {
+  margin-top: var(--ravel-space-2);
+}
+
+.search-suggestions-label {
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--ravel-text-3);
+  margin-bottom: var(--ravel-space-3);
+}
+
+.search-suggestion-chip {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: var(--ravel-space-3) 0;
+  border-bottom: 1px solid var(--ravel-border);
+  color: var(--ravel-text-1);
+  font-family: var(--ravel-font-body);
+  font-size: 13px;
+  font-style: normal;
+  transition: color var(--ravel-duration-fast) var(--ravel-ease), padding-left var(--ravel-duration-fast) var(--ravel-ease);
+}
+
+.search-suggestions .search-suggestion-chip:last-child { border-bottom: none; }
+
+.search-suggestion-chip:hover {
+  color: var(--ravel-accent);
+  padding-left: 6px;
+}
+
+.search-page-heading {
+  font-family: var(--ravel-font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--ravel-accent);
+  margin-bottom: var(--ravel-space-4);
+}
+
+/* the "FOUND." moment - the first time in a session that RAVEL actually
+   surfaces something, it gets one beat of its own before the results
+   settle: a single word igniting out of the dark. Only ever plays once
+   per session (see armFoundMoment in dashboard.ts). */
+.found-moment {
+  font-family: var(--ravel-font-display);
+  font-weight: 600;
+  font-style: normal;
+  font-size: 52px;
+  color: var(--ravel-accent);
+  text-shadow: 0 0 40px var(--ravel-accent-glow);
+  margin-bottom: var(--ravel-space-5);
+  opacity: 0;
+  filter: blur(10px);
+  animation: ravel-found-ignite 1100ms var(--ravel-ease) both;
+}
+
+@keyframes ravel-found-ignite {
+  0% { opacity: 0; filter: blur(14px); letter-spacing: 0.3em; transform: scale(0.94); }
+  55% { opacity: 1; filter: blur(0); letter-spacing: 0; transform: scale(1); }
+  100% { opacity: 1; filter: blur(0); }
+}
+
+/* ---- results: fragments recovered from the dark, at different
+   confidences. no card, no fill, no radius - just weight, sharpness
+   and drift, all driven by --ravel-confidence (0..1) set inline in
+   dashboard.ts from the real ranking score (SearchResult.relevance).
+   the strongest match sits still and sharp at full opacity; weaker
+   ones sit further off, softened, slightly displaced - literally more
+   "distant" the less certain RAVEL is. ---- */
+
+.trace-found-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.trace-found-card {
+  position: relative;
+  padding: var(--ravel-space-5) 0;
+  border-bottom: 1px solid var(--ravel-border);
+  opacity: calc(0.45 + 0.55 * var(--ravel-confidence, 1));
+  filter: blur(calc((1 - var(--ravel-confidence, 1)) * 1.6px));
+  transform: translateX(calc((1 - var(--ravel-confidence, 1)) * 10px));
+  transition: opacity var(--ravel-duration-med) var(--ravel-ease), filter var(--ravel-duration-med) var(--ravel-ease),
+    transform var(--ravel-duration-med) var(--ravel-ease);
+  /* entrance choreographed by anime.js - see animateTraceFoundCards */
+}
+
+.trace-found-card:hover {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateX(0);
+}
+
+.trace-found-list .trace-found-card:last-child { border-bottom: none; }
+
+.trace-found-card.is-most-likely {
+  border-left: 2px solid var(--ravel-accent);
+  padding-left: var(--ravel-space-4);
+  opacity: 1;
+  filter: none;
+  transform: none;
+}
+
+.trace-found-tag {
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--ravel-accent);
+  margin-bottom: var(--ravel-space-2);
+}
+
+/* a small readout of how strong this memory is, replacing what would
+   otherwise be an ugly "82% match" - a word, not a number */
+.trace-found-confidence {
+  font-family: var(--ravel-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--ravel-text-3);
+  text-transform: uppercase;
+  margin-bottom: var(--ravel-space-2);
+}
+
+.trace-found-title {
+  font-family: var(--ravel-font-display);
+  font-weight: 500;
+  font-size: var(--ravel-size-h1);
+  color: var(--ravel-text-0);
+  line-height: 1.25;
+}
+
+.trace-found-sub {
+  margin-top: var(--ravel-space-3);
+  font-size: 11px;
+  color: var(--ravel-text-3);
+}
+
+.trace-found-meta {
+  font-family: var(--ravel-font-mono);
+  font-size: 12px;
+  color: var(--ravel-text-1);
+  margin-top: 2px;
+}
+
+.trace-found-why-label {
+  margin-top: var(--ravel-space-3);
+  font-size: 11px;
+  color: var(--ravel-text-3);
+}
+
+.trace-found-why {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--ravel-text-1);
+  line-height: 1.6;
+}
+
+.trace-found-actions {
+  display: flex;
+  gap: var(--ravel-space-3);
+  margin-top: var(--ravel-space-4);
+}
+
+.trace-found-btn {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--ravel-accent-dim);
+  color: var(--ravel-accent);
+  font-family: var(--ravel-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.trace-found-btn:hover {
+  border-color: var(--ravel-accent);
+}
+
+.trace-found-btn-ghost {
+  border-color: var(--ravel-border-strong);
+  color: var(--ravel-text-1);
+}
+
+.trace-found-btn-ghost:hover {
+  border-color: var(--ravel-text-1);
+  color: var(--ravel-text-0);
+}
+
+/* ---- empty state: not "no results" - a deliberate dark ---- */
+
+.search-empty {
+  padding: var(--ravel-space-5) 0;
+}
+
+.search-empty-headline {
+  font-family: var(--ravel-font-display);
+  font-weight: 500;
+  font-style: normal;
+  font-size: 30px;
+  color: var(--ravel-text-1);
+  margin-bottom: var(--ravel-space-3);
+}
+
+.search-empty-hint {
+  font-size: 13px;
+  color: var(--ravel-text-3);
+  line-height: 1.6;
+  max-width: 460px;
+}
+
+/* ================= THE PULL - the signature interaction =================
+   Tracing back through a session doesn't reveal a list, it PULLS a
+   thread backward through time. A vertical spine grows upward from the
+   found item first, then each earlier step lights up along it in
+   sequence - the found thing is the anchor and everything else is
+   dragged into view behind it, mirroring how you actually remember:
+   you start at what you recall and pull backward from there. */
+
+.trace-view {
+  animation: ravel-rise var(--ravel-duration-med) var(--ravel-ease) both;
+}
+
+.trace-view-back {
+  font-family: var(--ravel-font-mono);
+  font-size: 11px;
+  color: var(--ravel-text-2);
+  margin-bottom: var(--ravel-space-4);
+}
+
+.trace-view-back:hover {
+  color: var(--ravel-text-0);
+}
+
+.trace-view-hole {
+  font-size: 12px;
+  color: var(--ravel-text-2);
+  margin-bottom: var(--ravel-space-4);
+}
+
+.trace-chain {
+  position: relative;
+  display: flex;
+  flex-direction: column-reverse; /* the target renders first in DOM so it appears at the anchor point, pulled-from position visually reads bottom-up */
+  align-items: flex-start;
+  max-width: 480px;
+  padding-left: var(--ravel-space-4);
+}
+
+/* the spine itself - the physical thread being pulled. Grows from 0 to
+   full height via anime.js (see animateTraceChain), scaleY from the
+   bottom so it visibly reaches backward/upward through the trail. */
+.trace-chain::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 1px;
+  background: linear-gradient(to top, var(--ravel-accent), var(--ravel-border-strong) 85%);
+  transform-origin: bottom center;
+  transform: scaleY(var(--ravel-thread-progress, 1));
+  transition: transform 900ms var(--ravel-ease);
+}
+
+.trace-chain-step {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ravel-space-4);
+  padding: var(--ravel-space-3) 0;
+  width: 100%;
+}
+
+.trace-chain-step::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--ravel-space-4) - 2px);
+  top: 15px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ravel-border-strong);
+}
+
+.trace-chain-time {
+  flex: none;
+  width: 60px;
+  font-family: var(--ravel-font-mono);
+  font-size: 11px;
+  color: var(--ravel-text-3);
+  padding-top: 2px;
+}
+
+.trace-chain-body {
+  min-width: 0;
+}
+
+.trace-chain-title {
+  font-family: var(--ravel-font-body);
+  font-size: 13px;
+  color: var(--ravel-text-0);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trace-chain-domain {
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  color: var(--ravel-text-3);
+  margin-top: 2px;
+}
+
+.trace-chain-arrow {
+  display: none; /* superseded by the drawn spine - no glyph arrows needed */
+}
+
+.trace-chain-target {
+  padding-left: var(--ravel-space-1);
+}
+
+.trace-chain-target::before {
+  background: var(--ravel-accent);
+  box-shadow: 0 0 10px var(--ravel-accent-glow);
+  width: 7px;
+  height: 7px;
+  left: calc(-1 * var(--ravel-space-4) - 3px);
+}
+
+.trace-chain-target .trace-chain-title {
+  font-family: var(--ravel-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--ravel-accent);
+  white-space: normal;
+}
+
+.trace-chain-empty {
+  font-size: 12px;
+  color: var(--ravel-text-2);
+  line-height: 1.6;
+  max-width: 480px;
+  padding: var(--ravel-space-3) 0;
+}
+
+
+/* ================= ice glass (matches the site) ================= */
+.dash-topbar,
+.dash-header {
+  background: rgba(5, 8, 14, 0.62);
+  -webkit-backdrop-filter: blur(var(--ravel-blur-glass)) saturate(160%);
+  backdrop-filter: blur(var(--ravel-blur-glass)) saturate(160%);
+}
+
+.dash-title,
+.home-hero-title,
+.home-greeting,
+.search-page-heading,
+.search-empty-headline,
+.found-moment,
+.hole-long-caption {
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+.home-greeting { color: var(--ravel-accent); }
+
+.home-nav-card,
+.panel-list,
+.trace-found-card,
+.search-page-box,
+.dash-thread-confirm {
+  position: relative;
+  background: var(--ravel-glass), var(--ravel-bg-1);
+  -webkit-backdrop-filter: blur(var(--ravel-blur-glass)) saturate(160%);
+  backdrop-filter: blur(var(--ravel-blur-glass)) saturate(160%);
+  border: 1px solid var(--ravel-border);
+  border-radius: var(--ravel-radius-lg);
+  box-shadow: var(--ravel-shadow-1);
+}
+.panel-list { padding: 0 var(--ravel-space-4); }
+.home-nav-card { transition: transform var(--ravel-duration-fast) var(--ravel-ease), border-color var(--ravel-duration-fast); }
+.home-nav-card:hover { transform: translateY(-3px); border-color: rgba(156, 196, 255, 0.35); }
+
+.home-nav-icon,
+.search-page-icon {
+  color: var(--ravel-accent);
+  background: var(--ravel-accent-faint);
+  border-color: rgba(156, 196, 255, 0.28);
+  border-radius: var(--ravel-radius-md);
+}
+
+/* primary actions: the same ice button as the site's "Download Ravel" */
+.dash-ravel-all-btn,
+.dash-thread-row.is-stale .dash-thread-btn,
+.dash-thread-confirm-btn,
+.home-name-prompt-btn {
+  border: 0;
+  border-radius: var(--ravel-radius-md);
+  background: linear-gradient(180deg, #f5f9ff, #c9dcff);
+  color: #06101f;
+  box-shadow: inset 0 1px 0 #fff, 0 8px 22px -10px rgba(156, 196, 255, 0.8);
+  font-family: var(--ravel-font-body);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.dash-ravel-all-btn:hover,
+.dash-thread-row.is-stale .dash-thread-btn:hover,
+.dash-thread-confirm-btn:hover,
+.home-name-prompt-btn:hover {
+  background: linear-gradient(180deg, #ffffff, #d6e5ff);
+  color: #06101f;
+}
+.dash-thread-btn,
+.spool-reopen-btn,
+.spool-delete-btn,
+.trace-found-btn-ghost { border-radius: var(--ravel-radius-md); }
+
+.topbar-tab.active { color: var(--ravel-text-0); }
+
+/* phones: tabs get their own scrollable row under the wordmark */
+@media (max-width: 640px) {
+  .dash-topbar { flex-wrap: wrap; row-gap: var(--ravel-space-2); height: auto; padding-top: var(--ravel-space-3); padding-bottom: 0; }
+  .topbar-settings { margin-left: auto; }
+  .topbar-nav { order: 3; flex: 0 0 100%; overflow-x: auto; scrollbar-width: none; gap: var(--ravel-space-5); padding-bottom: var(--ravel-space-2); }
+  .topbar-nav::-webkit-scrollbar { display: none; }
+  .topbar-tab { white-space: nowrap; flex: none; }
+}

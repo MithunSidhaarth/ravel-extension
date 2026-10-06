@@ -1,0 +1,25 @@
+# dependencies and build output (rebuilt by `npm run build`)
+node_modules/
+dist/
+dist_pkg/
+
+# signing key and packaged builds: never commit the .pem
+*.pem
+*.crx
+*.zip
+
+# manual snapshot copies and local test unzips
+/1/
+/2/
+/3/
+/4/
+/done/
+/fINAL/
+/New folder/
+/vdbvdb/
+
+# stale compiled JS from an older build (source of truth is src/)
+/analysis/
+/background/
+/dashboard/
+/design/

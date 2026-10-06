@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RAVEL Settings</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="../icons/icon32.png" />
+    <link rel="stylesheet" href="../design/base.css" />
+    <link rel="stylesheet" href="./options.css" />
+  </head>
+  <body>
+    <div class="ravel-noise"></div>
+    <div class="options-page">
+      <header class="options-header">
+        <div class="wordmark">RAVEL</div>
+        <div class="ravel-eyebrow">SETTINGS</div>
+      </header>
+
+      <section class="options-section">
+        <h2 class="options-section-title">Platforms</h2>
+        <p class="options-section-desc">Choose what RAVEL is allowed to notice. Everything stays on this device.</p>
+        <div id="platform-toggles" class="toggle-list"></div>
+      </section>
+
+      <section class="options-section">
+        <h2 class="options-section-title">Thread rescue</h2>
+        <p class="options-section-desc">
+          How long an open thread can sit untouched before the popup flags it as safe to close. This only changes
+          when a "RAVEL IT" prompt appears. Nothing is ever closed automatically.
+        </p>
+        <select id="stale-days-select" class="options-select">
+          <option value="1">1 day</option>
+          <option value="2">2 days</option>
+          <option value="3">3 days</option>
+          <option value="5">5 days</option>
+          <option value="7">1 week</option>
+          <option value="14">2 weeks</option>
+        </select>
+      </section>
+
+      <section class="options-section">
+        <h2 class="options-section-title">Retention</h2>
+        <p class="options-section-desc">How long local activity is kept before it's pruned automatically.</p>
+        <select id="retention-select" class="options-select">
+          <option value="30">30 days</option>
+          <option value="90">90 days</option>
+          <option value="180">180 days</option>
+          <option value="0">Forever</option>
+        </select>
+      </section>
+
+      <section class="options-section">
+        <h2 class="options-section-title">Your data</h2>
+        <p class="options-section-desc">
+          RAVEL never sends this anywhere. It lives in this browser's local IndexedDB only.
+        </p>
+        <div class="options-actions">
+          <button id="export-data" class="btn-secondary">Export local data</button>
+          <button id="delete-everything" class="btn-danger">Delete everything</button>
+        </div>
+        <p id="action-status" class="action-status" aria-live="polite"></p>
+      </section>
+
+      <nav class="legal-footer">
+        <a href="./about.html">About</a>
+        <a href="./privacy.html">Privacy Policy</a>
+        <a href="./cookies.html">Cookie Policy</a>
+      </nav>
+    </div>
+    <script type="module" src="./options.js"></script>
+  </body>
+</html>

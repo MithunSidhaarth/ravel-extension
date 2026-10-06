@@ -1,0 +1,82 @@
+/* RAVEL - design tokens.
+   Ice-blue glass, matching the site: a graphite-blue field, one ice accent
+   for anything alive/actionable (a live tab, a search match), and a deeper
+   cobalt for anything asking for a decision (a stale tab, a returning
+   pattern). Close in hue on purpose: one is the calm version of the other.
+
+   Inter Tight / JetBrains Mono are bundled locally as woff2 under ./fonts
+   (see base.css). Nothing is fetched over the network, in keeping with
+   Ravel's local-only design. */
+
+:root {
+  /* ---- surfaces: graphite blue ---- */
+  --ravel-bg-0: #05080e;       /* base field */
+  --ravel-bg-1: #0a0f18;       /* base surface */
+  --ravel-bg-2: #101827;       /* raised surface, used sparingly */
+  --ravel-bg-3: #172238;       /* hover / active surface */
+  --ravel-border: rgba(190, 215, 255, 0.10);
+  --ravel-border-strong: rgba(190, 215, 255, 0.20);
+
+  /* ---- accent: ice - anything alive/actionable ---- */
+  --ravel-accent: #9cc4ff;
+  --ravel-accent-dim: rgba(156, 196, 255, 0.55);
+  --ravel-accent-faint: rgba(156, 196, 255, 0.13);
+  --ravel-accent-glow: rgba(156, 196, 255, 0.38);
+
+  /* ---- cobalt - anything asking for a decision: a stale tab
+     ready to be ravelled, a returning pattern, a distraction nudge ---- */
+  --ravel-ember: #6f8dff;
+  --ravel-ember-faint: rgba(111, 141, 255, 0.16);
+
+  /* ---- text: signal on black ---- */
+  --ravel-text-0: #eef3fa;     /* primary - the nearest surface */
+  --ravel-text-1: rgba(238, 243, 250, 0.74);
+  --ravel-text-2: rgba(238, 243, 250, 0.52);
+  --ravel-text-3: rgba(238, 243, 250, 0.34);
+
+  /* ---- type ---- */
+  --ravel-font-display: "Inter Tight", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --ravel-font-body: "Inter Tight", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --ravel-font-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --ravel-size-eyebrow: 10px;
+  --ravel-size-body: 13px;
+  --ravel-size-h2: 15px;
+  --ravel-size-h1: 26px;
+
+  --ravel-tracking-eyebrow: 0.16em;
+
+  /* ---- spacing ---- */
+  --ravel-space-1: 4px;
+  --ravel-space-2: 8px;
+  --ravel-space-3: 12px;
+  --ravel-space-4: 16px;
+  --ravel-space-5: 24px;
+  --ravel-space-6: 32px;
+
+  /* ---- radius: sharp glass. radius-full kept only for true circles. ---- */
+  --ravel-radius-sm: 6px;
+  --ravel-radius-md: 8px;
+  --ravel-radius-lg: 12px;
+  --ravel-radius-full: 999px;
+
+  /* ---- motion ---- */
+  --ravel-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ravel-duration-fast: 180ms;
+  --ravel-duration-med: 420ms;
+  --ravel-duration-slow: 900ms;
+
+  /* ---- blur / depth ---- */
+  --ravel-blur-glass: 24px;
+  --ravel-shadow-1: 0 1px 0 rgba(255, 255, 255, 0.18) inset, 0 0 0 1px rgba(190, 215, 255, 0.10), 0 24px 50px -18px rgba(0, 0, 0, 0.7);
+  /* the glass surface used by cards, panels and the popup frame */
+  --ravel-glass: linear-gradient(140deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02) 45%, rgba(255, 255, 255, 0.045));
+
+  /* ---- DEPTH SYSTEM ----
+     The behavioral language for time and confidence: anything rendered
+     with age or uncertainty reads these instead of being styled by hand.
+     0 = at the surface (now, certain). 1 = fully sunk (old, weak). Set
+     per-element as --ravel-depth by dashboard.ts, consumed by .ravel-depth. */
+  --ravel-depth-max-blur: 2.2px;
+  --ravel-depth-min-opacity: 0.32;
+}

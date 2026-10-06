@@ -1,0 +1,362 @@
+@import "./tokens.css";
+
+@font-face {
+  font-family: "Inter Tight";
+  src: url("./fonts/intertight-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter Tight";
+  src: url("./fonts/intertight-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter Tight";
+  src: url("./fonts/intertight-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("./fonts/jbmono-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("./fonts/jbmono-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  /* Establishes a stacking context on body so that descendants using
+     negative z-index stack *within* body, above body's own background,
+     instead of falling through to the root/canvas layer where they'd
+     render underneath it. Without this, body has no position set, forms
+     no stacking context, and any negative z-index layer gets painted
+     below body's own starfield background. */
+  position: relative;
+  isolation: isolate;
+  background:
+    /* a field, not a page: a faint ice glow from above and a grid that
+       fades out, the same atmosphere as the site */
+    radial-gradient(900px 600px at 85% -10%, rgba(47, 107, 255, 0.20), transparent 62%),
+    radial-gradient(700px 500px at -10% 110%, rgba(156, 196, 255, 0.08), transparent 62%),
+    var(--ravel-bg-0);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: var(--ravel-text-0);
+  font-family: var(--ravel-font-body);
+  font-size: var(--ravel-size-body);
+  font-weight: 500;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ================= depth system ================= */
+/* The shared behavioral rule for time and confidence. dashboard.ts sets
+   --ravel-depth (0 = now/certain, 1 = old/weak) inline per element; this
+   is the only place that translates depth into an actual visual. Recent
+   = sharp and at full strength. Old = softened, quieter, sinking. */
+
+.ravel-depth {
+  opacity: calc(1 - var(--ravel-depth, 0) * (1 - var(--ravel-depth-min-opacity)));
+  filter: blur(calc(var(--ravel-depth, 0) * var(--ravel-depth-max-blur)));
+  letter-spacing: calc(var(--ravel-depth, 0) * 0.02em);
+  transition: opacity var(--ravel-duration-med) var(--ravel-ease), filter var(--ravel-duration-med) var(--ravel-ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+.ravel-eyebrow {
+  font-family: var(--ravel-font-mono);
+  font-size: var(--ravel-size-eyebrow);
+  font-weight: 500;
+  letter-spacing: var(--ravel-tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--ravel-text-2);
+}
+
+.ravel-noise {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: var(--ravel-accent-faint);
+  color: var(--ravel-accent);
+}
+
+:focus-visible {
+  outline: 1px solid var(--ravel-accent);
+  outline-offset: 2px;
+}
+
+/* ================= opening reveal ================= */
+/* A single curtain that lifts on load, wordmark burning in from nothing
+   and clearing to reveal the interface already sitting underneath.
+   Shared shape for popup and dashboard; each host sizes its own mark. */
+
+.ravel-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ravel-bg-0);
+  pointer-events: none;
+  animation: ravel-intro-clear 900ms var(--ravel-ease) 620ms both;
+}
+
+.ravel-intro-mark {
+  font-family: var(--ravel-font-mono);
+  letter-spacing: 0.5em;
+  color: var(--ravel-text-1);
+  opacity: 0;
+  filter: blur(6px);
+  animation: ravel-intro-mark-in 620ms var(--ravel-ease) 120ms both;
+}
+
+@keyframes ravel-intro-mark-in {
+  0% { opacity: 0; filter: blur(6px); letter-spacing: 0.9em; }
+  100% { opacity: 1; filter: blur(0); letter-spacing: 0.5em; }
+}
+
+@keyframes ravel-intro-clear {
+  0% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ravel-intro { display: none; }
+}
+
+/* ================= custom cursor (dashboard only) ================= */
+/* Opted into via .ravel-custom-cursor on <html>, applied by dashboard.ts
+   once it's confirmed a fine pointer is present (never on touch). */
+
+html.ravel-custom-cursor,
+html.ravel-custom-cursor * {
+  cursor: none !important;
+}
+
+.ravel-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border-radius: 50%;
+  border: 1px solid var(--ravel-accent-dim);
+  pointer-events: none;
+  z-index: 998;
+  transform: translate(-100px, -100px);
+  transition: width 160ms var(--ravel-ease), height 160ms var(--ravel-ease),
+    margin 160ms var(--ravel-ease), border-color 160ms var(--ravel-ease),
+    background 160ms var(--ravel-ease);
+  will-change: transform;
+}
+
+.ravel-cursor::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: var(--ravel-accent);
+  transform: translate(-50%, -50%);
+}
+
+.ravel-cursor.is-hovering {
+  width: 36px;
+  height: 36px;
+  margin: -18px 0 0 -18px;
+  border-color: var(--ravel-accent);
+  background: var(--ravel-accent-faint);
+}
+
+/* ================= neoclassical ornamentation ================= */
+/* Line-art fittings - laurel sprig, an open book - tooled in faint
+   antiqued gold, the way a leather cover is stamped rather than
+   printed. Purely decorative: aria-hidden, never intercepts clicks,
+   and kept faint enough to read as texture, not illustration. */
+
+.ravel-ornament {
+  position: absolute;
+  pointer-events: none;
+  color: var(--ravel-accent);
+  opacity: 0.34;
+  z-index: 0;
+}
+
+.ravel-ornament.is-ember { color: var(--ravel-ember); }
+
+.ravel-ornament svg { display: block; }
+
+.ravel-ornament.corner-tr { top: 0; right: 0; }
+.ravel-ornament.corner-bl { bottom: 0; left: 0; }
+.ravel-ornament.corner-br { bottom: 0; right: 0; }
+
+/* a large, faint ex-libris medallion - laurel ring around a compass - 
+   meant to sit centered behind empty/idle states like a bookplate
+   pressed into the page rather than printed on it */
+.ravel-medallion {
+  position: absolute;
+  pointer-events: none;
+  color: var(--ravel-accent);
+  opacity: 0.05;
+  z-index: 0;
+}
+
+.ravel-medallion svg { display: block; }
+
+/* a ruined skyline at the horizon - hill, a fallen tower, a broken
+   colonnade - after the castle-on-the-hill and ruined-temple mood of
+   old landscape painting. Fixed low so it reads as distance, not
+   furniture. */
+.ravel-skyline {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  color: var(--ravel-text-1);
+  opacity: 0.1;
+  z-index: 0;
+}
+
+.ravel-skyline svg { display: block; width: 100%; height: auto; }
+
+/* a hairline rule with a small tooled diamond at its center, standing
+   in for a printer's flourish between sections of the page */
+.ravel-ornament-rule {
+  display: flex;
+  align-items: center;
+  gap: var(--ravel-space-3);
+  color: var(--ravel-border-strong);
+}
+
+.ravel-ornament-rule::before,
+.ravel-ornament-rule::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: currentColor;
+}
+
+.ravel-ornament-rule svg {
+  flex: none;
+  color: var(--ravel-accent-dim);
+}
+
+/* ================= the field ================= */
+/* RAVEL's signature backdrop: a canvas of drifting points at different
+   depths - near ones bright, fast, large; far ones dim, slow, small.
+   This is "time as physical" and "data as landscape" made literal and
+   ambient, and it's what the interface's attention reacts against (see
+   .ravel-field-focused in dashboard.css). Driven by initRavelField() in
+   dashboard.ts. Never intercepts input. */
+
+.ravel-field {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.7;
+  transition: opacity var(--ravel-duration-slow) var(--ravel-ease), filter var(--ravel-duration-slow) var(--ravel-ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ravel-field { display: none; }
+}
+
+/* ================= wordmark - a small masthead, not a label ================= */
+
+.ravel-wordmark {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.ravel-wordmark-text {
+  font-family: var(--ravel-font-mono);
+  font-weight: 500;
+  color: var(--ravel-text-0);
+}
+
+.ravel-wordmark-rule {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+  color: var(--ravel-accent);
+}
+
+.ravel-wordmark-rule::before,
+.ravel-wordmark-rule::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.55;
+}
+
+.ravel-wordmark-rule svg {
+  flex: none;
+  opacity: 0.85;
+}
+
+/* Shared entrance keyframe - lives here (not popup.css) because both the
+   popup and the dashboard reference it, and only base.css is loaded by
+   every extension page. It was previously defined only in popup.css,
+   which silently left every dashboard element using it (Spool entries,
+   confirm panels, long-hole captions) stuck at opacity: 0 forever. */
+@keyframes ravel-rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}

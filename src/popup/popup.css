@@ -1,0 +1,1035 @@
+.popup {
+  position: relative;
+  width: 380px;
+  max-height: 600px;
+  display: flex;
+  flex-direction: column;
+  background: var(--ravel-bg-0);
+  border: 1px solid var(--ravel-border);
+}
+
+.popup > .popup-header,
+.popup > .search-hero,
+.popup > #search-results,
+.popup > #idle-view,
+.popup > .popup-footer {
+  position: relative;
+  z-index: 1;
+}
+
+.popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ravel-space-3);
+  padding: var(--ravel-space-4) var(--ravel-space-5) var(--ravel-space-3);
+  border-bottom: 1px solid var(--ravel-border);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--ravel-space-3) var(--ravel-space-4);
+  min-width: 0;
+}
+
+.wordmark {
+  flex: none;
+  font-family: var(--ravel-font-mono);
+  font-size: 12px;
+  letter-spacing: 0.32em;
+  color: var(--ravel-text-1);
+}
+
+.live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.4;
+  transition: opacity var(--ravel-duration-med) var(--ravel-ease);
+}
+
+.live-indicator.is-active { opacity: 1; }
+
+.live-label {
+  font-family: var(--ravel-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: var(--ravel-text-2);
+}
+
+.live-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ravel-accent);
+}
+
+.live-indicator.is-active .live-dot {
+  animation: ravel-pulse 2.4s var(--ravel-ease) infinite;
+}
+
+@keyframes ravel-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* ---------- master LIVE/OFF toggle ---------- */
+
+.tracking-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  transition: opacity var(--ravel-duration-fast) var(--ravel-ease);
+}
+
+.tracking-toggle:hover {
+  opacity: 0.75;
+}
+
+.tracking-toggle-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ravel-accent);
+  animation: ravel-pulse 2.4s var(--ravel-ease) infinite;
+}
+
+.tracking-toggle #tracking-toggle-label,
+#tracking-toggle-label {
+  font-family: var(--ravel-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: var(--ravel-accent);
+}
+
+.tracking-toggle.is-off .tracking-toggle-dot {
+  background: var(--ravel-text-3);
+  animation: none;
+}
+
+.tracking-toggle.is-off #tracking-toggle-label {
+  color: var(--ravel-text-3);
+}
+
+
+/* ================= OPEN THREADS - the rescue mechanic, and the reason
+   this popup exists. A hoarded tab and a lost research trail are the same
+   fear (closing it = losing it), so this is the first thing shown: proof
+   that closing a thread doesn't cost you anything. Stale threads reuse the
+   existing "ember" accent (already the color of decay/return elsewhere in
+   the UI) rather than inventing a new warning color. ================= */
+
+.threads-section {
+  padding: var(--ravel-space-2) var(--ravel-space-5) 0;
+}
+
+.threads-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--ravel-space-2);
+}
+
+.threads-eyebrow {
+  font-family: var(--ravel-font-mono);
+  font-size: var(--ravel-size-eyebrow);
+  letter-spacing: var(--ravel-tracking-eyebrow);
+  color: var(--ravel-text-2);
+}
+
+.threads-count {
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  color: var(--ravel-text-3);
+}
+
+.threads-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.threads-empty {
+  padding: var(--ravel-space-3) 0 var(--ravel-space-4);
+  font-size: 12px;
+  color: var(--ravel-text-2);
+  line-height: 1.5;
+}
+
+.thread-row {
+  padding: var(--ravel-space-3) 0;
+  border-bottom: 1px solid var(--ravel-border);
+}
+
+.threads-list .thread-row:last-child {
+  border-bottom: none;
+  padding-bottom: var(--ravel-space-4);
+}
+
+.thread-row-main {
+  display: flex;
+  align-items: center;
+  gap: var(--ravel-space-3);
+}
+
+.thread-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ravel-accent);
+}
+
+.thread-row.is-stale .thread-dot {
+  background: var(--ravel-ember);
+  animation: ravel-pulse 1.8s var(--ravel-ease) infinite;
+}
+
+.thread-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.thread-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ravel-text-0);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.thread-meta {
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  color: var(--ravel-text-2);
+  margin-top: 1px;
+}
+
+.thread-row.is-stale .thread-meta {
+  color: var(--ravel-ember);
+}
+
+.thread-ravel-btn {
+  flex: none;
+  padding: 6px 12px;
+  border-radius: var(--ravel-radius-sm);
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  border: 1px solid var(--ravel-border-strong);
+  color: var(--ravel-text-1);
+  transition: border-color var(--ravel-duration-fast) var(--ravel-ease),
+    color var(--ravel-duration-fast) var(--ravel-ease),
+    background var(--ravel-duration-fast) var(--ravel-ease);
+}
+
+.thread-ravel-btn:hover {
+  border-color: var(--ravel-text-1);
+  color: var(--ravel-text-0);
+}
+
+.thread-row.is-stale .thread-ravel-btn {
+  border-color: var(--ravel-ember);
+  color: var(--ravel-ember);
+  background: var(--ravel-ember-faint);
+}
+
+.thread-row.is-stale .thread-ravel-btn:hover {
+  background: var(--ravel-ember);
+  color: var(--ravel-bg-0);
+}
+
+/* ---- confirm panel: expands under a row when "Ravel" is clicked. shows
+   exactly what gets kept before anything closes - the whole point is that
+   this is never a surprise. ---- */
+
+.thread-confirm {
+  margin-top: var(--ravel-space-3);
+  padding: var(--ravel-space-3);
+  border: 1px solid var(--ravel-border-strong);
+  border-radius: var(--ravel-radius-sm);
+  background: var(--ravel-bg-1);
+  animation: ravel-rise var(--ravel-duration-fast) var(--ravel-ease) both;
+}
+
+.thread-confirm-digest {
+  font-size: 12px;
+  color: var(--ravel-text-1);
+  line-height: 1.55;
+}
+
+.thread-confirm-tabs {
+  margin-top: var(--ravel-space-2);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-height: 90px;
+  overflow-y: auto;
+}
+
+.thread-confirm-tab {
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  color: var(--ravel-text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.thread-confirm-actions {
+  display: flex;
+  gap: var(--ravel-space-3);
+  margin-top: var(--ravel-space-3);
+}
+
+.thread-confirm-btn {
+  flex: none;
+  padding: 7px 13px;
+  border-radius: var(--ravel-radius-sm);
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+.thread-confirm-btn.primary {
+  border: 1px solid var(--ravel-ember);
+  color: var(--ravel-bg-0);
+  background: var(--ravel-ember);
+}
+
+.thread-confirm-btn.ghost {
+  border: 1px solid var(--ravel-border-strong);
+  color: var(--ravel-text-2);
+}
+
+.thread-confirm-btn.ghost:hover {
+  color: var(--ravel-text-0);
+  border-color: var(--ravel-text-1);
+}
+
+/* brief flash on the row a Trail was just made from, before it's removed
+   from the list on the next OPEN_THREADS_UPDATED broadcast */
+.thread-row.just-ravelled {
+  animation: ravel-ravelled-flash 700ms var(--ravel-ease);
+}
+
+@keyframes ravel-ravelled-flash {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.98); }
+}
+
+.thread-toast {
+  margin-top: var(--ravel-space-1);
+  padding: 8px var(--ravel-space-5);
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ravel-accent);
+  border-top: 1px solid var(--ravel-border-strong);
+  border-bottom: 1px solid var(--ravel-border-strong);
+  animation: ravel-rise var(--ravel-duration-fast) var(--ravel-ease) both;
+}
+
+/* ================= MEMORY SEARCH - the dominant popup interaction ================= */
+
+.search-hero {
+  margin: var(--ravel-space-4) 0 var(--ravel-space-4);
+  padding: 0 var(--ravel-space-5);
+}
+
+.search-hero-label {
+  font-family: var(--ravel-font-mono);
+  font-size: var(--ravel-size-eyebrow);
+  letter-spacing: var(--ravel-tracking-eyebrow);
+  color: var(--ravel-text-2);
+  margin-bottom: var(--ravel-space-2);
+}
+
+.search-hero-box {
+  display: flex;
+  align-items: center;
+  gap: var(--ravel-space-2);
+  padding: 8px 0 10px;
+  border-bottom: 1px solid var(--ravel-border-strong);
+  transition: border-color var(--ravel-duration-fast) var(--ravel-ease);
+}
+
+.search-hero-box:focus-within {
+  border-color: var(--ravel-accent);
+}
+
+.search-hero-icon {
+  flex: none;
+  display: flex;
+  align-items: center;
+  color: var(--ravel-text-2);
+  transition: color var(--ravel-duration-fast) var(--ravel-ease);
+}
+
+.search-hero-box:focus-within .search-hero-icon {
+  color: var(--ravel-accent);
+}
+
+.search-hero-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--ravel-text-0);
+  font-family: var(--ravel-font-display);
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.search-hero-input::placeholder {
+  color: var(--ravel-text-3);
+  font-style: normal;
+}
+
+.search-hero-clear {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--ravel-border);
+  color: var(--ravel-text-2);
+  font-size: 12px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-hero-clear:hover {
+  color: var(--ravel-text-0);
+  border-color: var(--ravel-border-strong);
+}
+
+/* ---- results ---- */
+
+.search-results {
+  padding: 0 var(--ravel-space-5) var(--ravel-space-4);
+  animation: ravel-rise var(--ravel-duration-med) var(--ravel-ease) both;
+}
+
+.search-heading {
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ravel-accent);
+  margin-bottom: var(--ravel-space-3);
+}
+
+.search-empty {
+  padding: var(--ravel-space-4) 0;
+  font-size: 12px;
+  color: var(--ravel-text-2);
+  line-height: 1.6;
+}
+
+.trace-card {
+  position: relative;
+  padding: var(--ravel-space-3) 0;
+  border-bottom: 1px solid var(--ravel-border);
+  transition: transform var(--ravel-duration-fast) var(--ravel-ease);
+}
+
+.trace-card:hover {
+  transform: translateY(-1px);
+}
+
+.search-results .trace-card:last-child { border-bottom: none; }
+
+.trace-card.is-most-likely {
+  border-left: 2px solid var(--ravel-accent);
+  padding-left: var(--ravel-space-3);
+}
+
+.trace-most-likely {
+  font-family: var(--ravel-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ravel-accent);
+  margin-bottom: var(--ravel-space-1);
+}
+
+.trace-title {
+  font-family: var(--ravel-font-display);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--ravel-text-0);
+  line-height: 1.3;
+}
+
+.trace-meta {
+  margin-top: 2px;
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  color: var(--ravel-text-2);
+}
+
+.trace-why {
+  margin-top: var(--ravel-space-2);
+  font-size: 11px;
+  color: var(--ravel-text-1);
+  line-height: 1.5;
+}
+
+.trace-actions {
+  display: flex;
+  gap: var(--ravel-space-4);
+  margin-top: var(--ravel-space-3);
+}
+
+.trace-btn {
+  flex: none;
+  padding: 2px 0;
+  border-bottom: 1px solid var(--ravel-accent-dim);
+  color: var(--ravel-accent);
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+.trace-btn:hover {
+  border-color: var(--ravel-accent);
+}
+
+.trace-btn-ghost {
+  border-color: var(--ravel-border-strong);
+  color: var(--ravel-text-1);
+}
+
+.trace-btn-ghost:hover {
+  border-color: var(--ravel-text-1);
+  color: var(--ravel-text-0);
+}
+
+/* ---------- RIGHT NOW (live current-tab strip) ---------- */
+
+.current-card {
+  position: relative;
+  margin: 0 var(--ravel-space-5) var(--ravel-space-4);
+  padding: var(--ravel-space-3) 0;
+  border-top: 1px solid var(--ravel-border);
+  border-bottom: 1px solid var(--ravel-border);
+  animation: ravel-rise var(--ravel-duration-med) var(--ravel-ease) both;
+}
+
+.current-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--ravel-space-3);
+}
+
+.current-platform-badge {
+  flex: none;
+  width: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  color: var(--ravel-accent);
+}
+
+.current-platform-badge.platform-instagram,
+.current-platform-badge.platform-netflix {
+  color: var(--ravel-ember);
+}
+
+.current-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.current-domain {
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ravel-text-2);
+  text-transform: lowercase;
+}
+
+.current-title {
+  font-size: 12.5px;
+  color: var(--ravel-text-0);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.current-timer {
+  flex: none;
+  font-family: var(--ravel-font-mono);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ravel-accent);
+}
+
+.current-card.just-visited {
+  animation: ravel-visit-flash 900ms var(--ravel-ease);
+}
+
+@keyframes ravel-visit-flash {
+  0% { border-color: var(--ravel-accent); box-shadow: 0 0 0 1px var(--ravel-accent-glow); }
+  100% { border-color: var(--ravel-border); box-shadow: none; }
+}
+
+/* ---------- preview notice (shown before real data exists) ----------
+   A cartouche, not an alert: a thin double rule top and bottom framing a
+   single centered line of small caps - the way a plate caption sits
+   under an engraving, not a warning toast. */
+
+.preview-badge {
+  align-self: stretch;
+  text-align: center;
+  font-family: var(--ravel-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--ravel-text-2);
+  padding: var(--ravel-space-2) var(--ravel-space-2);
+  border-top: 1px solid var(--ravel-border-strong);
+  border-bottom: 1px solid var(--ravel-border-strong);
+  line-height: 1.6;
+}
+
+.popup-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--ravel-space-4) var(--ravel-space-5) var(--ravel-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ravel-space-6);
+  scrollbar-width: thin;
+}
+
+.popup-body::-webkit-scrollbar { width: 4px; }
+.popup-body::-webkit-scrollbar-thumb { background: var(--ravel-border-strong); border-radius: 4px; }
+
+/* ---------- shared section chrome ---------- */
+
+.ravel-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ravel-space-3);
+  min-width: 0;
+  /* entrance is choreographed by anime.js in popup.ts (see playPopupEntrance) - 
+     no CSS animation here, so it doesn't fight the JS-driven timeline. */
+}
+
+/* ravel-rise keyframes now live in design/base.css, shared by every page */
+
+.ravel-section-title {
+  font-family: var(--ravel-font-display);
+  font-size: var(--ravel-size-h1);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--ravel-text-0);
+  overflow-wrap: break-word;
+}
+
+.ravel-stats {
+  font-family: var(--ravel-font-mono);
+  font-size: 11px;
+  color: var(--ravel-text-2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ravel-space-1) var(--ravel-space-3);
+}
+
+.ravel-empty {
+  font-size: 12px;
+  color: var(--ravel-text-2);
+  border: 1px solid var(--ravel-border);
+  border-radius: var(--ravel-radius-sm);
+  padding: var(--ravel-space-4);
+  line-height: 1.5;
+}
+
+/* ---------- NOW: related topics, as a simple wrapping row of tags.
+   No absolute positioning, no fixed-width truncation - every label is
+   shown in full and the row wraps to as many lines as it needs. ---------- */
+
+.topic-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ravel-space-2);
+  margin-top: var(--ravel-space-1);
+}
+
+.topic-chip {
+  flex: none;
+  max-width: 100%;
+  padding: 6px 11px;
+  border: 1px solid var(--ravel-border-strong);
+  border-radius: var(--ravel-radius-sm);
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ravel-text-1);
+  background: var(--ravel-bg-1);
+  white-space: normal;
+  overflow-wrap: break-word;
+  transition: border-color var(--ravel-duration-fast) var(--ravel-ease),
+    color var(--ravel-duration-fast) var(--ravel-ease);
+}
+
+.topic-chip:hover {
+  border-color: var(--ravel-accent-dim);
+  color: var(--ravel-accent);
+}
+
+/* ---------- site record (per topic) ---------- */
+
+.site-list-wrap {
+  border-top: 1px solid var(--ravel-border);
+}
+
+.site-list-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  padding: var(--ravel-space-3) 0;
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ravel-text-2);
+}
+
+.site-list-chevron {
+  color: var(--ravel-text-3);
+  transition: transform var(--ravel-duration-fast) var(--ravel-ease);
+  font-size: 11px;
+}
+
+.site-list-wrap[aria-expanded="true"] .site-list-chevron {
+  transform: rotate(90deg);
+  color: var(--ravel-accent);
+}
+
+.site-list {
+  display: none;
+  flex-direction: column;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.site-list-wrap[aria-expanded="true"] .site-list {
+  display: flex;
+}
+
+.site-list-row {
+  padding: var(--ravel-space-2) 0;
+  border-bottom: 1px solid var(--ravel-border);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.site-list-row:last-child { border-bottom: none; }
+
+.site-list-title {
+  font-size: 11.5px;
+  color: var(--ravel-text-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.site-list-domain {
+  font-family: var(--ravel-font-mono);
+  font-size: 9.5px;
+  color: var(--ravel-text-3);
+}
+
+/* ---------- RABBIT HOLES: a physical path, not a card. no border, no
+   radius, no fill - the trail (●──●──●) is always visible; the only
+   container is the click target around it. ---------- */
+
+.rabbit-hole-card {
+  padding-top: var(--ravel-space-2);
+}
+
+.rabbit-hole-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ravel-text-2);
+}
+
+.rabbit-hole-chevron {
+  color: var(--ravel-text-3);
+  transition: transform var(--ravel-duration-fast) var(--ravel-ease);
+  font-size: 11px;
+}
+
+.rabbit-hole-card[aria-expanded="true"] .rabbit-hole-chevron {
+  transform: rotate(90deg);
+  color: var(--ravel-accent);
+}
+
+.rabbit-hole-trail {
+  display: flex;
+  align-items: center;
+  margin-top: var(--ravel-space-3);
+  height: 14px;
+}
+
+.rabbit-hole-trail .hole-node {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+}
+
+.rabbit-hole-trail .hole-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ravel-text-2);
+}
+
+.rabbit-hole-trail .hole-node:first-child .hole-dot,
+.rabbit-hole-trail .hole-node:last-child .hole-dot {
+  background: var(--ravel-accent);
+}
+
+.rabbit-hole-trail .hole-line {
+  flex: 1;
+  height: 1px;
+  min-width: 8px;
+  background: var(--ravel-border-strong);
+}
+
+.trail-step-list {
+  display: none;
+  flex-direction: column;
+  gap: var(--ravel-space-2);
+  margin-top: var(--ravel-space-3);
+  padding-top: var(--ravel-space-3);
+  border-top: 1px solid var(--ravel-border);
+}
+
+.rabbit-hole-card[aria-expanded="true"] .trail-step-list {
+  display: flex;
+}
+
+.trail-step {
+  font-size: 12px;
+  color: var(--ravel-text-1);
+}
+
+.trail-step-domain {
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  color: var(--ravel-text-3);
+  display: block;
+  margin-top: 2px;
+}
+
+/* ---------- GHOSTS: a fragment surfacing from the background, not a
+   notification card - no box, no fill. staggered blur/rise on entry
+   does the "emerging" work. ---------- */
+
+.ghost-eyebrow-sub {
+  font-size: 11px;
+  color: var(--ravel-text-2);
+  opacity: 0;
+  filter: blur(3px);
+  transform: translateY(6px);
+  animation: ravel-emerge var(--ravel-duration-slow) var(--ravel-ease) 80ms both;
+}
+
+.ghost-timeline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--ravel-space-2) var(--ravel-space-3);
+  margin-top: var(--ravel-space-2);
+  opacity: 0;
+  filter: blur(3px);
+  transform: translateY(6px);
+  animation: ravel-emerge var(--ravel-duration-slow) var(--ravel-ease) 200ms both;
+}
+
+@keyframes ravel-emerge {
+  0% { opacity: 0; transform: translateY(6px); filter: blur(3px); }
+  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+.ghost-era-label {
+  font-family: var(--ravel-font-mono);
+  font-size: 11px;
+  color: var(--ravel-text-2);
+}
+
+.ghost-era-now { color: var(--ravel-ember); }
+
+/* slow breathing, started once the entrance animation lands - 
+   marks this specific label as the "live" half of the timeline */
+.ghost-timeline.ravel-ghost-live .ghost-era-now {
+  animation: ravel-breathe 2.6s ease-in-out 1.6s infinite;
+}
+
+@keyframes ravel-breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+.ghost-connector {
+  font-size: 11px;
+  font-style: normal;
+  color: var(--ravel-text-3);
+}
+
+/* ---------- footer ---------- */
+
+.popup-footer {
+  padding: var(--ravel-space-3) var(--ravel-space-5) var(--ravel-space-5);
+}
+
+.popup-footer .ravel-ornament-rule {
+  margin-bottom: var(--ravel-space-4);
+}
+
+.enter-ravel-btn {
+  position: relative;
+  width: 100%;
+  padding: 14px 0;
+  color: var(--ravel-text-0);
+  font-family: var(--ravel-font-mono);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.26em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(180deg, var(--ravel-bg-1), var(--ravel-bg-2));
+  border: 1px solid var(--ravel-border-strong);
+  border-radius: var(--ravel-radius-sm);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.55) inset, 0 6px 18px rgba(10, 16, 28, 0.12);
+  transition: color var(--ravel-duration-fast) var(--ravel-ease),
+    border-color var(--ravel-duration-fast) var(--ravel-ease),
+    background var(--ravel-duration-med) var(--ravel-ease),
+    box-shadow var(--ravel-duration-med) var(--ravel-ease);
+}
+
+/* a tooled gold hairline set inside the border, like the blind-stamped
+   frame on a book's cover */
+.enter-ravel-btn::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid var(--ravel-accent-faint);
+  border-radius: 1px;
+  pointer-events: none;
+  transition: border-color var(--ravel-duration-med) var(--ravel-ease);
+}
+
+.enter-ravel-btn .enter-ravel-mark {
+  flex: none;
+  color: var(--ravel-accent-dim);
+  transition: color var(--ravel-duration-fast) var(--ravel-ease), opacity var(--ravel-duration-fast) var(--ravel-ease);
+}
+
+.enter-ravel-btn:hover {
+  color: var(--ravel-accent);
+  border-color: var(--ravel-accent-dim);
+  background: linear-gradient(180deg, var(--ravel-bg-2), var(--ravel-bg-3));
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.55) inset, 0 10px 24px var(--ravel-accent-glow);
+}
+
+.enter-ravel-btn:hover::before {
+  border-color: var(--ravel-accent-dim);
+}
+
+.enter-ravel-btn:hover .enter-ravel-mark {
+  color: var(--ravel-accent);
+}
+
+.enter-ravel-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 3px 10px rgba(10, 16, 28, 0.14);
+}
+
+.enter-ravel-btn .arrow {
+  transition: transform var(--ravel-duration-fast) var(--ravel-ease);
+}
+
+.enter-ravel-btn:hover .arrow {
+  transform: translateX(3px);
+}
+
+/* ================= ice glass (matches the site) ================= */
+.popup {
+  background:
+    radial-gradient(420px 280px at 100% -10%, rgba(47, 107, 255, 0.22), transparent 65%),
+    var(--ravel-bg-0);
+  border-color: rgba(190, 215, 255, 0.12);
+}
+
+.threads-list,
+.current-card,
+.search-hero-box,
+.rabbit-hole-card,
+.trace-card,
+.thread-confirm {
+  background: var(--ravel-glass), var(--ravel-bg-1);
+  -webkit-backdrop-filter: blur(var(--ravel-blur-glass)) saturate(160%);
+  backdrop-filter: blur(var(--ravel-blur-glass)) saturate(160%);
+  border: 1px solid var(--ravel-border);
+  border-radius: var(--ravel-radius-lg);
+  box-shadow: var(--ravel-shadow-1);
+}
+.threads-list { padding: 0 var(--ravel-space-3); }
+.rabbit-hole-card { padding: var(--ravel-space-3); }
+
+/* primary actions: the same ice button as the site */
+.thread-row.is-stale .thread-ravel-btn,
+.thread-confirm-btn.primary,
+.enter-ravel-btn {
+  border: 0;
+  border-radius: var(--ravel-radius-md);
+  background: linear-gradient(180deg, #f5f9ff, #c9dcff);
+  color: #06101f;
+  box-shadow: inset 0 1px 0 #fff, 0 8px 22px -10px rgba(156, 196, 255, 0.8);
+  font-family: var(--ravel-font-body);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.thread-row.is-stale .thread-ravel-btn:hover,
+.thread-confirm-btn.primary:hover,
+.enter-ravel-btn:hover {
+  background: linear-gradient(180deg, #ffffff, #d6e5ff);
+  color: #06101f;
+}
+.thread-ravel-btn,
+.thread-confirm-btn,
+.trace-btn { border-radius: var(--ravel-radius-md); }
+
+/* the old warm-workshop ornaments don't belong on glass */
+.ravel-skyline,
+.ravel-ornament,
+.ravel-noise { display: none; }
