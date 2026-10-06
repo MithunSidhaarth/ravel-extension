@@ -6,13 +6,15 @@
 
 **Close any tab without losing your place.**
 
-Ravel groups your open tabs into threads, notices which ones have gone quiet, and lets you close them with the whole thread kept and searchable. Everything stays on your device.
+Ravel groups your open tabs into threads, notices which ones have gone quiet, and lets you close them with the whole thread kept and searchable. Everything stays on your device, and every line of it is free and open source under the MIT licence.
 
 [Website](https://ravel.runs-on.dev) · [Download](https://ravel.runs-on.dev/download) · [Install from source](#build-from-source)
 
 ![Manifest V3](https://img.shields.io/badge/Chrome-Manifest%20V3-9cc4ff?style=flat-square&labelColor=05080e)
 ![Local only](https://img.shields.io/badge/data-local%20only-9cc4ff?style=flat-square&labelColor=05080e)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-9cc4ff?style=flat-square&labelColor=05080e)
+![MIT licence](https://img.shields.io/badge/licence-MIT-9cc4ff?style=flat-square&labelColor=05080e)
+![Open source](https://img.shields.io/badge/open%20source-yes-9cc4ff?style=flat-square&labelColor=05080e)
 
 <img src="docs/site.jpg" alt="The Ravel website" width="860" />
 
@@ -51,6 +53,7 @@ Ravel needs to see your tabs to group them. It never needs to send them anywhere
 - **Local storage only.** Everything lives in the browser's IndexedDB. Export it or delete everything from the settings page at any time.
 - **Permissions:** `tabs` (to read titles and URLs and close what you ravel) and `alarms` (to re-run analysis periodically). A content script on http(s) pages measures active reading time and reads page titles and descriptions.
 - **Fonts are bundled.** Nothing is fetched from a CDN; the pages run under a `script-src 'self'` policy.
+- **Open source, so you can check.** Every claim above can be verified by reading `src/`. Nothing is hidden behind a build step you can't reproduce.
 
 ## Install
 
@@ -101,9 +104,9 @@ build.mjs       build script (tsc + esbuild, assembles dist_pkg/)
 
 The interface uses the same ice-blue glass language as the website: a graphite field, one ice accent for anything live or actionable, a deeper cobalt for anything asking for a decision, and sharp glass panels. All colours, radii and type live in `src/design/tokens.css`.
 
-## Licence
+## Open source and licence
 
-No licence has been chosen yet, so all rights are reserved by the author for now. Open an issue if you'd like to use or contribute to the code.
+Ravel is free and open source under the [MIT licence](LICENSE). Use it, fork it, learn from it, ship your own version of it. Issues and pull requests are welcome.
 
 ---
 
