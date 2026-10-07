@@ -12,6 +12,7 @@ import type {
   RavelSettings,
 } from "../shared/types";
 import { formatDuration } from "../shared/utils";
+import { coveredTabs, threadLossLine, wayBackText } from "../analysis/wayBack";
 import { MOCK_SNAPSHOT } from "./mockData";
 import { animate, stagger } from "../vendor/anime.esm.js";
 
@@ -470,6 +471,22 @@ function renderThreads(threads: OpenThread[]) {
     return;
   }
 
+  // Covered tabs cost nothing to close, whatever their age, so they're
+  // offered from the first minute instead of after days of quiet.
+  const covered = coveredTabs(threads);
+  if (covered.length > 0) {
+    const bar = el("div", "covered-bar");
+    bar.append(
+      el("span", "covered-text", `${covered.length} tab${covered.length === 1 ? " is" : "s are"} already covered by another open tab. Nothing to lose.`)
+    );
+    const btn = el("button", "thread-ravel-btn", "CLOSE COVERED");
+    btn.addEventListener("click", () =>
+      ravelThread({ label: "Covered tabs", keywords: [], tabs: covered, hardTabs: 0, lastActiveAt: 0, quietDays: 0, isStale: false }, "covered")
+    );
+    bar.append(btn);
+    threadsListEl.append(bar);
+  }
+
   threads.forEach((thread) => {
     const key = threadKey(thread);
     const row = el("div", `thread-row${thread.isStale ? " is-stale" : ""}`);
@@ -481,7 +498,7 @@ function renderThreads(threads: OpenThread[]) {
     const text = el("div", "thread-text");
     text.append(el("div", "thread-label", thread.label));
     const tabWord = thread.tabs.length === 1 ? "1 tab" : `${thread.tabs.length} tabs`;
-    text.append(el("div", "thread-meta", `${tabWord} · ${fmtQuiet(thread.quietDays)}`));
+    text.append(el("div", "thread-meta", `${tabWord} · ${fmtQuiet(thread.quietDays)} · ${threadLossLine(thread)}`));
     main.append(text);
 
     const button = el("button", "thread-ravel-btn", thread.isStale ? "RAVEL IT" : "RAVEL");
@@ -517,7 +534,12 @@ function renderThreadConfirm(thread: OpenThread, key: string): HTMLElement {
   );
 
   const tabsList = el("div", "thread-confirm-tabs");
-  thread.tabs.forEach((t) => tabsList.append(el("div", "thread-confirm-tab", `${t.title || t.domain} · ${t.domain}`)));
+  // Each tab shows what closing it costs and how it comes back.
+  thread.tabs.forEach((t) => {
+    const row = el("div", `thread-confirm-tab way-${t.wayBack.cost}`, `${t.title || t.domain} · ${t.domain}`);
+    row.append(el("div", "thread-confirm-way", wayBackText(t.wayBack)));
+    tabsList.append(row);
+  });
   panel.append(tabsList);
 
   const actions = el("div", "thread-confirm-actions");
@@ -624,7 +646,9 @@ function renderSearchResults(results: SearchResult[]) {
     const empty = el(
       "div",
       "search-empty",
-      "No traces found yet. Try describing it differently. RAVEL only searches what it's actually seen you visit."
+      // Say exactly what's searched, so a miss reads as "use a different
+      // word", not "Ravel lost it". Matching is on words, not meaning.
+      "Nothing matched. Ravel matches the words in page titles, site names and addresses, not meaning, so try a word that was in the title or the site, like \"streeteasy\" rather than \"that apartment\"."
     );
     searchResultsEl.append(empty);
     return;

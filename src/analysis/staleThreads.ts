@@ -1,4 +1,5 @@
 import type { OpenTab, OpenThread } from "../shared/types";
+import { assessWayBack } from "./wayBack";
 import { keywordSimilarity, titleCase, daysBetween } from "../shared/utils";
 
 const SIMILARITY_THRESHOLD = 0.28; // same bar as historical clustering.ts
@@ -11,8 +12,13 @@ export const STALE_THREAD_DAYS = 3; // untouched this long while still open = a 
  * yet (content script hasn't reported) falls back to its own domain, so it
  * still lands in a sane group instead of an empty one.
  */
-export function groupOpenTabs(tabs: OpenTab[], staleThreadDays: number = STALE_THREAD_DAYS): OpenThread[] {
-  const groups: { keywords: string[]; tabs: OpenTab[] }[] = [];
+export function groupOpenTabs(
+  openTabs: OpenTab[],
+  staleThreadDays: number = STALE_THREAD_DAYS,
+  domainVisits: Map<string, number> = new Map()
+): OpenThread[] {
+  const tabs = openTabs.map((t) => ({ ...t, wayBack: assessWayBack(t, openTabs, domainVisits) }));
+  const groups: { keywords: string[]; tabs: (typeof tabs)[number][] }[] = [];
 
   for (const tab of tabs) {
     const kw = tab.keywords.length > 0 ? tab.keywords : [tab.domain];
@@ -39,15 +45,19 @@ export function groupOpenTabs(tabs: OpenTab[], staleThreadDays: number = STALE_T
       label: titleCase(g.keywords[0] ?? g.tabs[0]?.domain ?? "untitled"),
       keywords: g.keywords,
       tabs: [...g.tabs].sort((a, b) => b.lastActiveAt - a.lastActiveAt),
+      hardTabs: g.tabs.filter((t) => t.wayBack.cost === "high").length,
       lastActiveAt,
       quietDays,
       isStale: quietDays >= staleThreadDays,
     };
   });
 
-  // Longest-quiet first - the rescue candidates lead, not the thread you're
-  // looking at right now (that one doesn't need rescuing).
-  return threads.sort((a, b) => b.quietDays - a.quietDays);
+  // Quiet threads lead. Among them, the cheapest to lose comes first, so
+  // the first few closes are painless and trust is earned before a thread
+  // with hard-to-find tabs is ever suggested. Then longest-quiet first.
+  return threads.sort(
+    (a, b) => Number(b.isStale) - Number(a.isStale) || a.hardTabs - b.hardTabs || b.quietDays - a.quietDays
+  );
 }
 
 /** Plain-language digest of a thread at the moment it's ravelled - built only

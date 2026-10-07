@@ -39,9 +39,10 @@
         <h2 class="options-section-title">Why Ravel asks for its permissions</h2>
         <p class="options-section-desc">
           "tabs" lets Ravel see the titles and URLs of your open tabs, which is how it builds threads. "alarms"
-          schedules the local cleanup that prunes old activity past your retention setting. The content script that
-          runs on http/https pages reads signals already visible on the page (its title, a bit of structure) to
-          help identify what it is. None of it leaves the browser.
+          schedules the local cleanup that prunes old activity past your retention setting. "scripting" only lets
+          Ravel switch on its optional page reader. That reader stays off, with no access to any page, until you
+          turn on "Read page descriptions" in Settings and allow it in Chrome's prompt; then it reads the page's
+          own description tags and counts active reading time. None of it leaves the browser.
         </p>
       </section>
 

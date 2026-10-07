@@ -1498,3 +1498,30 @@ html, body { height: 100%; }
   .topbar-nav::-webkit-scrollbar { display: none; }
   .topbar-tab { white-space: nowrap; flex: none; }
 }
+
+/* Day-one "right now" line on Home: real counts from the open tabs. */
+.home-right-now {
+  max-width: 640px;
+  padding: var(--ravel-space-6) 0;
+  border-bottom: 1px solid var(--ravel-border);
+}
+.home-right-now-btn {
+  width: auto;
+  margin-top: var(--ravel-space-4);
+  padding: var(--ravel-space-3) var(--ravel-space-5);
+  color: var(--ravel-accent);
+  font-family: var(--ravel-font-mono);
+  font-size: 12px;
+}
+
+/* Way back: each tab's cost of closing and how it comes back. */
+.dash-way {
+  font-family: var(--ravel-font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ravel-text-2);
+  margin: 2px 0 6px;
+  white-space: normal;
+}
+.way-none .dash-way { color: var(--ravel-accent); }
+.way-high .dash-way { color: var(--ravel-ember); }

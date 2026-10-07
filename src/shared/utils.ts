@@ -1,4 +1,5 @@
 // RAVEL - pure helpers. No side effects, no network, no chrome.* calls.
+import type { Platform } from "./types";
 
 export function uid(): string {
   return crypto.randomUUID();
@@ -35,13 +36,30 @@ export function extractKeywords(text: string, max = 6): string[] {
     .map(([w]) => w);
 }
 
+/** Folds simple plurals ("apartments" -> "apartment") so matching doesn't
+ *  miss on word form. Used only for comparing, never for display labels.
+ *  ponytail: plural-only, a real stemmer if near-misses show up beyond that. */
+export function stem(w: string): string {
+  return w.length > 4 && w.endsWith("s") && !/(ss|us|is)$/.test(w) ? w.slice(0, -1) : w;
+}
+
 /** Cosine similarity between two keyword sets (bag-of-words, unweighted). */
 export function keywordSimilarity(a: string[], b: string[]): number {
   if (a.length === 0 || b.length === 0) return 0;
-  const setA = new Set(a);
-  const setB = new Set(b);
+  const setA = new Set(a.map(stem));
+  const setB = new Set(b.map(stem));
   const shared = [...setA].filter((k) => setB.has(k)).length;
   return shared / Math.sqrt(setA.size * setB.size);
+}
+
+/** Which named platform a hostname belongs to. Hostname only, so it never
+ *  breaks when a site redesigns - unlike the per-site DOM adapters it replaced. */
+export function platformFor(hostname: string): Platform {
+  const h = hostname.replace(/^www\./, "");
+  if (h.endsWith("youtube.com")) return "youtube";
+  if (h.endsWith("instagram.com")) return "instagram";
+  if (h.endsWith("netflix.com")) return "netflix";
+  return "generic";
 }
 
 export function daysBetween(a: number, b: number): number {

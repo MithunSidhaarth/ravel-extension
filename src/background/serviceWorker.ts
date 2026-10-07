@@ -19,8 +19,8 @@ import type {
 } from "../shared/types";
 import { EventsRepo, OpenTabsRepo, SettingsRepo, SpoolsRepo } from "../storage/repositories";
 import { deleteEverything, pruneOldEvents, exportAllData } from "../storage/db";
-import { runAnalysis, prepareForSearch, searchMemory, traceBack, groupOpenTabs, buildDigest } from "../analysis/index";
-import { uid, formatBadgeDuration, extractKeywords, domainFromUrl } from "../shared/utils";
+import { runAnalysis, prepareForSearch, searchMemory, traceBack, groupOpenTabs, buildDigest, assessWayBack } from "../analysis/index";
+import { uid, formatBadgeDuration, extractKeywords, domainFromUrl, platformFor } from "../shared/utils";
 
 // Badge is scoped per-tab (chrome.action supports a {tabId} option on every
 // setter), so Chrome automatically shows the right tab's badge as the user
@@ -57,24 +57,60 @@ function isTrackableUrl(url?: string): boolean {
 }
 
 /** Merges a partial update into an existing OpenTab row, or creates one.
- *  `openedAt` is only ever set once - later calls never overwrite it. */
+ *  `openedAt` is only ever set once - later calls never overwrite it.
+ *
+ *  A brand-new row first looks for an orphan: a stored row for the same URL
+ *  whose tabId no longer exists. That's the same tab after a browser restart
+ *  (tabIds aren't stable), so it inherits its real history instead of every
+ *  restart resetting every thread to "active just now" - which meant anyone
+ *  who restarts daily never saw a thread go quiet at all. With no orphan,
+ *  Chrome's own `lastAccessed` is used, so tabs that were already old on
+ *  install day get flagged on install day, not three days later. */
 async function upsertOpenTab(
   tabId: number,
-  patch: Partial<Omit<OpenTab, "tabId" | "openedAt">> & { windowId?: number }
+  patch: Partial<Omit<OpenTab, "tabId" | "openedAt">>,
+  lastAccessed?: number
 ): Promise<void> {
-  const existing = (await OpenTabsRepo.all()).find((t) => t.tabId === tabId);
+  const rows = await OpenTabsRepo.all();
+  const existing = rows.find((t) => t.tabId === tabId);
+  let inherit: OpenTab | undefined;
+  if (!existing && patch.url) {
+    const liveIds = new Set((await chrome.tabs.query({})).map((t) => t.id));
+    inherit = rows.find((t) => t.url === patch.url && !liveIds.has(t.tabId));
+  }
   const now = Date.now();
+  const firstSeen = Math.min(lastAccessed ?? now, now);
   const next: OpenTab = {
     tabId,
     windowId: patch.windowId ?? existing?.windowId ?? -1,
     url: patch.url ?? existing?.url ?? "",
     domain: patch.domain ?? existing?.domain ?? "",
     title: patch.title ?? existing?.title ?? "",
-    keywords: patch.keywords ?? existing?.keywords ?? [],
-    openedAt: existing?.openedAt ?? now,
-    lastActiveAt: patch.lastActiveAt ?? existing?.lastActiveAt ?? now,
+    keywords: patch.keywords ?? existing?.keywords ?? inherit?.keywords ?? [],
+    openerUrl: patch.openerUrl ?? existing?.openerUrl ?? inherit?.openerUrl,
+    openedAt: existing?.openedAt ?? inherit?.openedAt ?? firstSeen,
+    lastActiveAt: patch.lastActiveAt ?? existing?.lastActiveAt ?? inherit?.lastActiveAt ?? firstSeen,
   };
   await OpenTabsRepo.upsert(next);
+}
+
+/** What a raw chrome tab can tell us. lastActiveAt is only claimed when the
+ *  tab is actually in front - a tab restored or loading in the background
+ *  hasn't been looked at, so it mustn't look freshly touched. */
+// Most new tabs start as about:blank and get their address a moment later,
+// so the opener seen at creation is held here until the tab has one.
+const openerByTab = new Map<number, string>();
+
+function tabFields(tab: chrome.tabs.Tab): Partial<Omit<OpenTab, "tabId" | "openedAt">> {
+  return {
+    openerUrl: tab.id !== undefined ? openerByTab.get(tab.id) : undefined,
+    windowId: tab.windowId,
+    url: tab.url,
+    domain: domainFromUrl(tab.url!),
+    title: tab.title ?? "",
+    keywords: extractKeywords(tab.title ?? "", 6),
+    lastActiveAt: tab.active ? Date.now() : undefined,
+  };
 }
 
 /** Marks a tab as just-touched without changing anything else about it -
@@ -93,29 +129,31 @@ async function reconcileOpenTabs(): Promise<void> {
   const liveTabs = await chrome.tabs.query({});
   const liveIds = new Set(liveTabs.map((t) => t.id).filter((id): id is number => id !== undefined));
 
-  const tracked = await OpenTabsRepo.all();
-  for (const t of tracked) {
-    if (!liveIds.has(t.tabId)) await OpenTabsRepo.remove(t.tabId);
-  }
+  const trackedIds = new Set((await OpenTabsRepo.all()).map((t) => t.tabId));
 
-  const trackedIds = new Set(tracked.map((t) => t.tabId));
+  // Adopt first, prune after: adoption inherits from the dead rows.
   for (const tab of liveTabs) {
     if (tab.id === undefined || trackedIds.has(tab.id)) continue;
     if (!isTrackableUrl(tab.url)) continue;
-    await upsertOpenTab(tab.id, {
-      windowId: tab.windowId,
-      url: tab.url,
-      domain: domainFromUrl(tab.url!),
-      title: tab.title ?? "",
-      keywords: extractKeywords(tab.title ?? "", 6),
-      lastActiveAt: Date.now(),
-    });
+    await upsertOpenTab(tab.id, tabFields(tab), tab.lastAccessed);
+  }
+  for (const t of await OpenTabsRepo.all()) {
+    if (!liveIds.has(t.tabId)) await OpenTabsRepo.remove(t.tabId);
   }
 }
 
+/** How many stored visits each site has - a site you're on often is one you
+ *  can find your way back into, which lowers a tab's way-back cost.
+ *  ponytail: full event scan per call; keep a running count if it gets slow. */
+async function domainVisits(): Promise<Map<string, number>> {
+  const counts = new Map<string, number>();
+  for (const e of await EventsRepo.all()) counts.set(e.domain, (counts.get(e.domain) ?? 0) + 1);
+  return counts;
+}
+
 async function getOpenThreadsSnapshot(): Promise<OpenThread[]> {
-  const [tabs, settings] = await Promise.all([OpenTabsRepo.all(), SettingsRepo.get()]);
-  return groupOpenTabs(tabs, settings.staleThreadDays);
+  const [tabs, settings, visits] = await Promise.all([OpenTabsRepo.all(), SettingsRepo.get(), domainVisits()]);
+  return groupOpenTabs(tabs, settings.staleThreadDays, visits);
 }
 
 function broadcastOpenThreads(): void {
@@ -163,7 +201,8 @@ function broadcast(message: RavelBroadcast) {
 
 async function handlePageObserved(
   tabId: number,
-  payload: Omit<ActivityEvent, "id" | "revisitCount" | "duration" | "sessionId">
+  payload: Omit<ActivityEvent, "id" | "revisitCount" | "duration" | "sessionId">,
+  active: boolean
 ) {
   const settings = await SettingsRepo.get();
   if (!settings.trackingEnabled || !settings.platformsEnabled[payload.platform]) {
@@ -201,10 +240,91 @@ async function handlePageObserved(
     domain: event.domain,
     title: event.title,
     keywords: event.keywords?.length ? event.keywords : extractKeywords(event.title, 6),
-    lastActiveAt: Date.now(),
+    lastActiveAt: active ? Date.now() : undefined,
   });
   broadcastOpenThreads();
 }
+
+// ---- observing without page access ----
+//
+// Page access (the content script) is opt-in, so by default Ravel reads only
+// what the `tabs` permission already gives it: URL and title. Events and
+// active time are recorded here instead. Once the user grants page access,
+// the content script takes over both and this path stands down, so nothing
+// is counted twice.
+
+const HOST_ORIGINS = ["http://*/*", "https://*/*"];
+let hostGranted = false;
+
+async function syncContentScript(): Promise<void> {
+  hostGranted = await chrome.permissions.contains({ origins: HOST_ORIGINS });
+  const registered = await chrome.scripting.getRegisteredContentScripts({ ids: ["ravel"] });
+  if (hostGranted && registered.length === 0) {
+    await chrome.scripting.registerContentScripts([
+      { id: "ravel", matches: HOST_ORIGINS, js: ["content.bundle.js"], runAt: "document_idle" },
+    ]);
+  } else if (!hostGranted && registered.length > 0) {
+    await chrome.scripting.unregisterContentScripts({ ids: ["ravel"] });
+  }
+}
+// A worker woken by a tab event still needs to know whether page access is
+// on before it observes anything, so observation waits on this.
+let hostSync = syncContentScript();
+chrome.permissions.onAdded.addListener(() => void (hostSync = syncContentScript()));
+chrome.permissions.onRemoved.addListener(() => void (hostSync = syncContentScript()));
+
+async function observeFromTab(tab: chrome.tabs.Tab): Promise<void> {
+  await hostSync;
+  if (hostGranted || tab.id === undefined || !isTrackableUrl(tab.url)) return;
+  const state = tabState.get(tab.id);
+  if (state && state.currentUrl === tab.url) {
+    // Same page, later title (SPAs set it after load): fix the stored event.
+    const event = state.currentEventId ? await EventsRepo.byId(state.currentEventId) : undefined;
+    if (event && tab.title && event.title !== tab.title) {
+      await EventsRepo.add({ ...event, title: tab.title, keywords: extractKeywords(tab.title, 8) });
+    }
+    return;
+  }
+  if (tab.active) await creditActive(); // close out time on the page being left
+  const domain = domainFromUrl(tab.url!);
+  await handlePageObserved(
+    tab.id,
+    {
+      timestamp: Date.now(),
+      url: tab.url!,
+      domain,
+      title: tab.title || domain,
+      platform: platformFor(domain),
+      contentType: "page",
+      keywords: extractKeywords(tab.title ?? "", 8),
+      extraction: { sources: ["title-tag"], confidence: 0.1 },
+    },
+    !!tab.active
+  );
+}
+
+// Time on the focused tab, credited when focus moves. Without page access
+// there's no idle signal, so one stretch is capped.
+// ponytail: 30-min cap stands in for idle detection; add the "idle" permission if durations look inflated.
+const MAX_CREDIT_MS = 30 * 60_000;
+let focused: { tabId: number; since: number } | null = null;
+
+async function creditActive(): Promise<void> {
+  if (!focused || hostGranted) return;
+  const { tabId, since } = focused;
+  focused.since = Date.now();
+  const url = tabState.get(tabId)?.currentUrl;
+  if (url) await handleActiveTimeTick(tabId, Math.min(Date.now() - since, MAX_CREDIT_MS), url);
+}
+
+async function refocus(): Promise<void> {
+  await creditActive();
+  const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+  const win = tab ? await chrome.windows.get(tab.windowId) : null;
+  focused = tab?.id !== undefined && win?.focused ? { tabId: tab.id, since: Date.now() } : null;
+}
+
+chrome.windows.onFocusChanged.addListener(() => void refocus());
 
 const lastOpenTabTouchAt = new Map<number, number>();
 const OPEN_TAB_TOUCH_MIN_GAP_MS = 60_000; // one IndexedDB write per tab per minute of active reading, at most
@@ -303,7 +423,7 @@ chrome.runtime.onMessage.addListener((message: RavelMessage, sender, sendRespons
   (async () => {
     switch (message.type) {
       case "PAGE_OBSERVED":
-        if (tabId !== undefined) await handlePageObserved(tabId, message.payload);
+        if (tabId !== undefined) await handlePageObserved(tabId, message.payload, !!sender.tab?.active);
         sendResponse({ ok: true });
         break;
 
@@ -369,6 +489,7 @@ chrome.runtime.onMessage.addListener((message: RavelMessage, sender, sendRespons
         // skipped rather than failing the whole action.
         const allOpen = await OpenTabsRepo.all();
         const tabs = allOpen.filter((t) => message.payload.tabIds.includes(t.tabId));
+        const visits = await domainVisits();
         if (tabs.length === 0) {
           sendResponse({ error: "Those tabs are already closed." });
           break;
@@ -377,12 +498,33 @@ chrome.runtime.onMessage.addListener((message: RavelMessage, sender, sendRespons
           id: uid(),
           label: message.payload.label,
           keywords: message.payload.keywords,
-          tabs: tabs.map((t) => ({ url: t.url, title: t.title, domain: t.domain })),
+          // Each tab keeps its way back, judged before anything closes.
+          tabs: tabs.map((t) => ({ url: t.url, title: t.title, domain: t.domain, wayBack: assessWayBack(t, allOpen, visits) })),
           openedAt: Math.min(...tabs.map((t) => t.openedAt)),
           closedAt: Date.now(),
           digest: buildDigest(tabs, message.payload.label),
         };
         await SpoolsRepo.add(spool);
+        // "Kept searchable" has to hold for every tab, including ones open
+        // since before Ravel was installed and never observed loading.
+        const seenUrls = new Set((await EventsRepo.all()).map((e) => e.url));
+        for (const t of tabs) {
+          if (seenUrls.has(t.url)) continue;
+          await EventsRepo.add({
+            id: uid(),
+            timestamp: t.lastActiveAt,
+            url: t.url,
+            domain: t.domain,
+            title: t.title || t.domain,
+            platform: platformFor(t.domain),
+            contentType: "page",
+            sessionId: `spool-${spool.id}`,
+            duration: 0,
+            revisitCount: 0,
+            keywords: [...new Set([...t.keywords, ...extractKeywords(spool.label, 3)])],
+            extraction: { sources: ["title-tag"], confidence: 0.1 },
+          });
+        }
         for (const t of tabs) {
           try {
             await chrome.tabs.remove(t.tabId);
@@ -436,44 +578,38 @@ chrome.runtime.onMessage.addListener((message: RavelMessage, sender, sendRespons
 
 chrome.tabs.onRemoved.addListener((tabId) => {
   tabState.delete(tabId);
+  openerByTab.delete(tabId);
   lastOpenTabTouchAt.delete(tabId);
   void OpenTabsRepo.remove(tabId).then(broadcastOpenThreads);
 });
 
-chrome.tabs.onCreated.addListener((tab) => {
-  if (tab.id === undefined || !isTrackableUrl(tab.url)) return;
-  void upsertOpenTab(tab.id, {
-    windowId: tab.windowId,
-    url: tab.url,
-    domain: domainFromUrl(tab.url!),
-    title: tab.title ?? "",
-    keywords: extractKeywords(tab.title ?? "", 6),
-    lastActiveAt: Date.now(),
-  }).then(broadcastOpenThreads);
+chrome.tabs.onCreated.addListener(async (tab) => {
+  if (tab.id === undefined) return;
+  // Where a tab was opened from is the first step of its way back.
+  const opener =
+    tab.openerTabId !== undefined ? (await OpenTabsRepo.all()).find((t) => t.tabId === tab.openerTabId) : undefined;
+  if (opener) openerByTab.set(tab.id, opener.url);
+  if (!isTrackableUrl(tab.url)) return;
+  void upsertOpenTab(tab.id, tabFields(tab), tab.lastAccessed).then(broadcastOpenThreads);
 });
 
 // Switching to a tab is a strong "the user is engaging with this, not
 // hoarding it" signal - the same reason ACTIVE_TIME_TICK touches a tab.
 chrome.tabs.onActivated.addListener(({ tabId }) => {
   void touchOpenTab(tabId).then(broadcastOpenThreads);
+  void refocus();
 });
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (!isTrackableUrl(tab.url)) return;
   if (changeInfo.url) {
-    // Navigated to a new page - the old keywords no longer apply; the
-    // content script's PAGE_OBSERVED will refine this shortly after.
-    void upsertOpenTab(tabId, {
-      windowId: tab.windowId,
-      url: tab.url,
-      domain: domainFromUrl(tab.url!),
-      title: tab.title ?? "",
-      keywords: extractKeywords(tab.title ?? "", 6),
-      lastActiveAt: Date.now(),
-    }).then(broadcastOpenThreads);
+    // Navigated to a new page - the old keywords no longer apply; the page
+    // observation below (or the content script) refines this shortly.
+    void upsertOpenTab(tabId, tabFields(tab), tab.lastAccessed).then(broadcastOpenThreads);
   } else if (changeInfo.title) {
-    void upsertOpenTab(tabId, { title: changeInfo.title }).then(broadcastOpenThreads);
+    void upsertOpenTab(tabId, { title: changeInfo.title, keywords: extractKeywords(changeInfo.title, 6) }).then(broadcastOpenThreads);
   }
+  if (changeInfo.status === "complete" || changeInfo.title) void observeFromTab(tab);
 });
 
 // If the user flips tracking (or a whole platform) off from the options
@@ -490,6 +626,7 @@ chrome.alarms.create("ravel-prune", { periodInMinutes: 60 * 12 });
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === "ravel-analysis") {
+    await creditActive(); // keeps the focused tab's time current between switches
     await refreshSnapshot();
   }
   if (alarm.name === "ravel-prune") {
@@ -500,6 +637,8 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
 async function boot() {
   await SettingsRepo.get(); // seeds default settings row on first install
+  await hostSync;
+  await refocus();
   await reconcileOpenTabs(); // tabIds don't survive a browser restart - resync against reality
   broadcastOpenThreads();
   await refreshSnapshot();

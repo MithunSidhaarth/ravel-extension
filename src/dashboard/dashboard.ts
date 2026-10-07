@@ -12,6 +12,7 @@ import type {
 } from "../shared/types";
 import { DEFAULT_SETTINGS } from "../shared/types";
 import { formatDuration, daysBetween } from "../shared/utils";
+import { coveredTabs, threadLossLine, wayBackText } from "../analysis/wayBack";
 import { MOCK_SNAPSHOT } from "../popup/mockData";
 import { animate } from "../vendor/anime.esm.js";
 
@@ -339,7 +340,9 @@ function renderOpenThreads(threads: OpenThread[]) {
     text.append(el("div", "dash-thread-label", thread.label));
     const tabWord = thread.tabs.length === 1 ? "1 tab" : `${thread.tabs.length} tabs`;
     const domains = [...new Set(thread.tabs.map((t) => t.domain))].slice(0, 3).join(", ");
-    text.append(el("div", "dash-thread-meta", `${tabWord} · ${fmtQuiet(thread.quietDays)} · ${domains}`));
+    text.append(
+      el("div", "dash-thread-meta", `${tabWord} · ${fmtQuiet(thread.quietDays)} · ${threadLossLine(thread)} · ${domains}`)
+    );
     main.append(text);
 
     const button = el("button", "dash-thread-btn", thread.isStale ? "RAVEL IT" : "RAVEL");
@@ -378,9 +381,12 @@ function renderThreadConfirm(thread: OpenThread, key: string): HTMLElement {
   );
 
   const tabsList = el("div", "dash-thread-confirm-tabs");
-  thread.tabs.forEach((t) =>
-    tabsList.append(el("div", "dash-thread-confirm-tab", `${t.title || t.domain} · ${t.domain}`))
-  );
+  // Each tab shows what closing it costs and how it comes back.
+  thread.tabs.forEach((t) => {
+    const row = el("div", `dash-thread-confirm-tab way-${t.wayBack.cost}`, `${t.title || t.domain} · ${t.domain}`);
+    row.append(el("div", "dash-way", wayBackText(t.wayBack)));
+    tabsList.append(row);
+  });
   panel.append(tabsList);
 
   const actions = el("div", "dash-thread-confirm-actions");
@@ -453,7 +459,7 @@ async function loadOpenThreads() {
   try {
     const threads: OpenThread[] = await chrome.runtime.sendMessage({ type: "GET_OPEN_THREADS" });
     openThreads = threads ?? [];
-    if (activeTab === "threads") render();
+    if (activeTab === "threads" || activeTab === "home") render();
   } catch {
     // background not reachable - keep whatever's already shown
   }
@@ -638,7 +644,7 @@ function renderSearchTab() {
       el(
         "div",
         "search-empty-hint",
-        "RAVEL only searches what it's actually seen you visit. Try remembering what came before it, or describe a different timeframe."
+        "Ravel matches the words in page titles, site names and addresses, not meaning. Try a word that was in the title, the site's name, or a time like \"last week\"."
       )
     );
     wrap.append(empty);
@@ -950,6 +956,8 @@ function renderSpools(list: Spool[]) {
       row.append(el("span", "spool-tab-title", t.title || t.domain));
       row.append(el("span", "spool-tab-domain", t.domain));
       tabList.append(row);
+      // Spools made before Way Back existed have no recipe; nothing to show.
+      if (t.wayBack?.recipe) tabList.append(el("div", "dash-way", `Way back: ${t.wayBack.recipe}`));
     });
     entry.append(tabList);
 
@@ -1093,17 +1101,18 @@ function renderHome() {
     el(
       "p",
       "home-hero-lede",
-      "Ravel quietly follows what you're actually browsing, groups it into living threads, and lets you close the stale ones in one motion. The digest stays, searchable, for as long as you need it. Every trace, every spool, every trail is written only to this device. Nothing is sent anywhere, ever."
+      "Ravel groups your open tabs into threads by the words and sites they share, works out what closing each tab would cost you, and lets you close the quiet ones in one motion. Every tab keeps its way back: the search that finds it, or the exact address. Every trace, every spool, every trail is written only to this device. Nothing is sent anywhere, ever."
     )
   );
   wrap.append(hero);
+  wrap.append(renderRightNow());
 
   // ---- how it works: three steps, the whole mechanic in one glance ----
   const steps = el("div", "home-steps");
   const stepsData: [string, string, string][] = [
-    ["01", "TRACK", "Browse normally. Ravel follows what you open in the background, entirely on-device, and groups related tabs into a thread."],
-    ["02", "RAVEL IT", "When a thread's gone quiet, close it in one motion. Every tab it held is kept as a spool, a searchable digest, not a summary that throws detail away."],
-    ["03", "RECALL", "Half-remember something days later? Describe it in Search and Ravel traces back exactly how you got there."],
+    ["01", "GROUP", "Browse normally. Ravel groups open tabs that share words in their titles or a site into a thread, entirely on-device."],
+    ["02", "RAVEL IT", "Copies and refined searches can go right away; quiet threads come cheapest-to-lose first. Every tab you close is kept in a spool with its way back."],
+    ["03", "RECALL", "Remember a word from the title or the site? Search finds it, and traces back how you got there."],
   ];
   stepsData.forEach(([num, label, body]) => {
     const step = el("div", "home-step");
@@ -1137,6 +1146,40 @@ function renderHome() {
   wrap.append(nav);
 
   root.append(wrap);
+}
+
+// Day one has to show something real, not "come back in three days".
+// Tab ages come from Chrome's own lastAccessed, so tabs that were already
+// sitting there on install day are counted on install day.
+function renderRightNow(): HTMLElement {
+  const box = el("div", "home-right-now");
+  box.append(el("div", "home-hero-label", "RIGHT NOW"));
+  const stale = openThreads.filter((t) => t.isStale);
+  const quietest = openThreads.reduce<OpenThread | undefined>((q, t) => (!q || t.quietDays > q.quietDays ? t : q), undefined);
+  const covered = coveredTabs(openThreads).length;
+  const tabCount = (list: OpenThread[]) => list.reduce((n, t) => n + t.tabs.length, 0);
+  let line: string;
+  if (stale.length > 0) {
+    const n = tabCount(stale);
+    line = `${n} tab${n === 1 ? "" : "s"} in ${stale.length} thread${stale.length === 1 ? "" : "s"} you haven't touched in ${settings.staleThreadDays}+ days. Safe to ravel, and every one stays findable.`;
+  } else if (quietest && quietest.quietDays >= 1) {
+    line = `Nothing's gone quiet yet. Your quietest thread is ${quietest.label}, untouched for ${Math.round(quietest.quietDays)} day${Math.round(quietest.quietDays) === 1 ? "" : "s"}.`;
+  } else {
+    line = openThreads.length
+      ? `${tabCount(openThreads)} open tabs in ${openThreads.length} threads, all touched today. Ravel will flag one the moment it goes quiet.`
+      : "No open tabs yet. Ravel groups them as you browse.";
+  }
+  // Covered tabs don't need to go quiet first: closing them loses nothing today.
+  if (covered > 0) {
+    line += ` ${covered} tab${covered === 1 ? " is" : "s are"} already covered by another open tab, so closing ${covered === 1 ? "it" : "them"} loses nothing.`;
+  }
+  box.append(el("p", "home-hero-lede", line));
+  if (openThreads.length) {
+    const go = el("button", "home-nav-card home-right-now-btn", stale.length ? "Review quiet threads →" : "See open threads →");
+    go.addEventListener("click", () => setActiveTab("threads"));
+    box.append(go);
+  }
+  return box;
 }
 
 // First-run only: settings.userName starts empty, so Home asks once,

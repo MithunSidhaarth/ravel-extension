@@ -7,6 +7,7 @@ import { annotateRevisits } from "./revisitDetection";
 export { searchMemory } from "./search/searchEngine";
 export { traceBack } from "./traceBack";
 export { groupOpenTabs, buildDigest, STALE_THREAD_DAYS } from "./staleThreads";
+export { assessWayBack } from "./wayBack";
 
 /** Prepares events + full (untrimmed) clusters/rabbit holes - what search and
  *  trace-back need to see everything, not just the top-5 the dashboard shows. */

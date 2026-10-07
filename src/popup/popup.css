@@ -1033,3 +1033,26 @@
 .ravel-skyline,
 .ravel-ornament,
 .ravel-noise { display: none; }
+
+/* Way back: tabs already covered by another open tab, and each tab's cost. */
+.covered-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--ravel-space-3);
+  padding: 8px var(--ravel-space-5);
+  border-bottom: 1px solid var(--ravel-border-strong);
+}
+.covered-text {
+  flex: 1;
+  font-family: var(--ravel-font-mono);
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--ravel-accent);
+}
+.thread-confirm-way {
+  white-space: normal;
+  color: var(--ravel-text-2);
+  margin: 1px 0 4px;
+}
+.thread-confirm-tab.way-none .thread-confirm-way { color: var(--ravel-accent); }
+.thread-confirm-tab.way-high .thread-confirm-way { color: var(--ravel-ember); }

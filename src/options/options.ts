@@ -53,6 +53,29 @@ function renderToggles(settings: RavelSettings) {
   }
 }
 
+// Page access is a Chrome permission, not a Ravel setting: Chrome owns the
+// truth, and the background worker registers or drops the content script
+// when it changes (serviceWorker.ts syncContentScript).
+const HOST_ORIGINS = ["http://*/*", "https://*/*"];
+const pageAccessSw = document.getElementById("page-access")!;
+
+function showPageAccess(on: boolean) {
+  pageAccessSw.classList.toggle("on", on);
+  pageAccessSw.setAttribute("aria-checked", String(on));
+}
+
+pageAccessSw.addEventListener("click", async () => {
+  const on = pageAccessSw.classList.contains("on");
+  // request() must run straight from the click, before any other await.
+  const granted = on
+    ? !(await chrome.permissions.remove({ origins: HOST_ORIGINS }))
+    : await chrome.permissions.request({ origins: HOST_ORIGINS });
+  showPageAccess(granted);
+  setStatus(granted ? "Page access on. Applies to pages as they load." : "Page access off.");
+});
+
+void chrome.permissions.contains({ origins: HOST_ORIGINS }).then(showPageAccess);
+
 let settings: RavelSettings | null = null;
 
 // If Settings is open in two tabs at once (or the popup flips Tracking

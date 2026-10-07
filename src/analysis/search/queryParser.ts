@@ -1,5 +1,5 @@
 import type { Platform } from "../../shared/types";
-import { extractKeywords } from "../../shared/utils";
+import { extractKeywords, stem } from "../../shared/utils";
 
 export interface ParsedQuery {
   raw: string;
@@ -93,7 +93,8 @@ export function parseQuery(raw: string): ParsedQuery {
   else if (/\bafternoon\b/.test(lower)) hourRange = { from: 12, to: 17 };
   else if (/\bevening\b/.test(lower)) hourRange = { from: 18, to: 22 };
 
-  const tokens = lower.replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(Boolean);
+  // Stemmed so "apartments" still substring-matches a title saying "apartment".
+  const tokens = lower.replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(Boolean).map(stem);
   const keywords = extractKeywords(raw, 12);
 
   return { raw, keywords, tokens, platform, time, hourRange };

@@ -18,6 +18,21 @@
       </header>
 
       <section class="options-section">
+        <h2 class="options-section-title">Page access (optional)</h2>
+        <p class="options-section-desc">
+          By default Ravel sees only what the tabs permission gives it: each tab's title and address. Turn this on
+          and it also reads a page's own description tags and counts active reading time, which groups and finds
+          things better. Chrome will ask you to allow it. Turn it off any time and the access is handed back.
+        </p>
+        <div class="toggle-list">
+          <div class="toggle-row">
+            <span class="toggle-label">Read page descriptions</span>
+            <button id="page-access" class="switch" role="switch" aria-checked="false"></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="options-section">
         <h2 class="options-section-title">Platforms</h2>
         <p class="options-section-desc">Choose what RAVEL is allowed to notice. Everything stays on this device.</p>
         <div id="platform-toggles" class="toggle-list"></div>

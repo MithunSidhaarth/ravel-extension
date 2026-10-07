@@ -26,15 +26,25 @@ You're not hoarding tabs. You're keeping a promise to come back to them. Closing
 
 Ravel doesn't organize your tabs. It removes the reason you're afraid to close them.
 
+## Way Back: what makes Ravel different
+
+Other tab tools ask how long it's been since you looked at a tab, or wait for you to dump them. Ravel asks **what closing a tab would cost you**, and keeps the way back to it.
+
+- **Covered, nothing to lose.** The same page is open in another tab, or you've since refined that search ("flights nyc" → "flights nyc jfk march"). These are offered the minute they appear. They don't have to go quiet first.
+- **Easy to find again.** A homepage, a search that can be re-run, or a title specific enough to search for. Ravel saves the exact search that gets it back.
+- **Hard to find again.** A filtered view whose settings live only in its address, or a title too vague to search for. Ravel saves the address and the page it was opened from.
+
+Quiet threads are suggested cheapest-to-lose first, so the first few closes are painless before a thread with a hard-to-find tab ever comes up. Everything is judged on your device from the address, title, the page a tab was opened from, and how often you visit a site.
+
 ## What it does
 
 | | |
 |---|---|
-| **Open threads** | Every open http(s) tab, grouped by what it's actually about. No folders, no manual tidying. |
-| **Quiet thread nudges** | A thread untouched for a few days (you choose how many) is flagged as safe to close. Nothing ever closes automatically. |
+| **Open threads** | Every open http(s) tab, grouped by the words and sites they share. No folders, no manual tidying. |
+| **Quiet thread nudges** | A thread untouched for a few days (you choose how many) is flagged as safe to close. Tab ages come from the browser itself, so tabs that were already old on install day are flagged on install day. Nothing ever closes automatically. |
 | **Ravel it** | One click closes the thread's tabs and keeps a digest of every title, site and time span as a **spool**. |
 | **Spools** | Every thread you've ravelled, kept in full and reopenable whenever you need it. |
-| **Search** | Find things in plain words, like *"that apartment from last week"*, and see how you got there. |
+| **Search** | Find a page by any word from its title, site or address, narrowed by time (*"streeteasy last week"*), and see how you got there. It matches words, not meaning. |
 | **Trails** | The rabbit holes you fell into, mapped out as paths you can walk back through. |
 
 <div align="center">
@@ -51,7 +61,8 @@ Ravel needs to see your tabs to group them. It never needs to send them anywhere
 
 - **No network requests.** The extension has no server to talk to. Grouping, flagging, search and spools all run in the browser.
 - **Local storage only.** Everything lives in the browser's IndexedDB. Export it or delete everything from the settings page at any time.
-- **Permissions:** `tabs` (to read titles and URLs and close what you ravel) and `alarms` (to re-run analysis periodically). A content script on http(s) pages measures active reading time and reads page titles and descriptions.
+- **Permissions:** `tabs` (to read titles and URLs and close what you ravel), `alarms` (to re-run analysis periodically) and `scripting` (to switch on the optional page reader). That's the whole install-time list: no access to page content.
+- **Page access is opt-in.** Settings → *Read page descriptions* asks Chrome for access to http(s) pages. Only then does a content script read a page's description tags and count active reading time. Turn it off and the access is handed back.
 - **Fonts are bundled.** Nothing is fetched from a CDN; the pages run under a `script-src 'self'` policy.
 - **Open source, so you can check.** Every claim above can be verified by reading `src/`. Nothing is hidden behind a build step you can't reproduce.
 
@@ -74,6 +85,7 @@ Requires Node 20 or newer.
 ```bash
 npm install
 npm run build
+npm run check   # word-matching self-check
 ```
 
 Then load the generated `dist_pkg/` folder with **Load unpacked**.
@@ -88,8 +100,8 @@ The build does two different things on purpose:
 ```
 src/
   background/   service worker: the only writer to storage, runs analysis on an alarm
-  content/      content script: page observation and active-time ticks
-  adapters/     per-site readers (generic, YouTube, Instagram, Netflix)
+  content/      optional content script: page description and active-time ticks
+  adapters/     the one generic page reader (Open Graph, schema.org, meta tags)
   analysis/     topic clustering, stale threads, rabbit holes, search, trace-back
   storage/      IndexedDB schema and repositories
   popup/        the toolbar popup (open threads, search, current page)

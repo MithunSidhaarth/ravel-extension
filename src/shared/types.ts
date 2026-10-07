@@ -191,6 +191,14 @@ export interface OpenTab {
   keywords: string[];
   openedAt: number; // when Ravel first saw this tab (best-effort on reconciliation)
   lastActiveAt: number; // last time this tab was focused, navigated, or actively read
+  openerUrl?: string; // the page this tab was opened from, if any - part of its way back
+}
+
+/** What closing a tab would cost, and how to get it back (analysis/wayBack.ts). */
+export interface WayBack {
+  cost: "none" | "low" | "high";
+  reason: string;
+  recipe?: string;
 }
 
 /** A live group of open tabs sharing a topic - the popup's primary view.
@@ -198,7 +206,9 @@ export interface OpenTab {
 export interface OpenThread {
   label: string;
   keywords: string[];
-  tabs: OpenTab[];
+  tabs: (OpenTab & { wayBack: WayBack })[];
+  /** Tabs that would be hard to find again - ordering puts these last. */
+  hardTabs: number;
   lastActiveAt: number; // most recently touched tab in the group
   quietDays: number; // days since lastActiveAt
   isStale: boolean; // quiet long enough to be a "safe to close" candidate
@@ -211,7 +221,7 @@ export interface Spool {
   id: string;
   label: string;
   keywords: string[];
-  tabs: { url: string; title: string; domain: string }[];
+  tabs: { url: string; title: string; domain: string; wayBack?: WayBack }[];
   openedAt: number;
   closedAt: number;
   digest: string;
